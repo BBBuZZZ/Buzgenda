@@ -1,6 +1,6 @@
-// Service worker de Buzgenda (v1)
+// Service worker de Buzgenda (v2)
 // Estrategia: primero red, y si no hay conexión, copia guardada en caché para soporte 100% offline.
-const CACHE_NAME = 'buzgenda-cache-v1';
+const CACHE_NAME = 'buzgenda-cache-v2';
 const ARCHIVOS = [
   './',
   './index.html',

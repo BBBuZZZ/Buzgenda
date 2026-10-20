@@ -6,6 +6,8 @@
   <title>Buzgenda | Organización Inteligente del Hogar</title>
   <meta name="description" content="Gestión integral de Inventario del Hogar, Lista de la Compra inteligente con sistema antiduplicados y Agenda de Tareas.">
   <link rel="manifest" href="manifest.json">
+  <link rel="icon" type="image/png" href="icon-192.png">
+  <link rel="apple-touch-icon" href="icon-192.png">
   <meta name="theme-color" content="#10b981">
   <meta name="apple-mobile-web-app-capable" content="yes">
   <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
@@ -167,12 +169,19 @@
       width: 44px;
       height: 44px;
       border-radius: var(--radius-md);
-      background: linear-gradient(135deg, #10b981 0%, #059669 100%);
+      overflow: hidden;
       display: flex;
       align-items: center;
       justify-content: center;
-      color: white;
-      box-shadow: 0 4px 12px rgba(16, 185, 129, 0.3);
+      box-shadow: 0 4px 12px rgba(16, 185, 129, 0.35);
+      flex-shrink: 0;
+    }
+
+    .brand-icon img {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+      display: block;
     }
 
     .brand-text h1 {
@@ -1247,11 +1256,7 @@
     <header class="app-header">
       <div class="brand-group">
         <div class="brand-icon">
-          <!-- Logo SVG Home & Box -->
-          <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
-            <path d="m3 9 9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/>
-            <polyline points="9 22 9 12 15 12 15 22"/>
-          </svg>
+          <img src="icon-192.png" alt="Buzgenda" width="44" height="44">
         </div>
         <div class="brand-text">
           <h1>Buzgenda</h1>
