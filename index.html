@@ -1,0 +1,2807 @@
+<!DOCTYPE html>
+<html lang="es" data-theme="dark">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+  <title>Buzgenda | Organización Inteligente del Hogar</title>
+  <meta name="description" content="Gestión integral de Inventario del Hogar, Lista de la Compra inteligente con sistema antiduplicados y Agenda de Tareas.">
+  <link rel="manifest" href="manifest.json">
+  <meta name="theme-color" content="#10b981">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+  
+  <style>
+    /* ==========================================================================
+       VARIABLES CSS & SISTEMA DE DISEÑO (LIGHT & DARK MODE)
+       ========================================================================== */
+    :root {
+      --font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+      --transition-smooth: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+      
+      /* Modo Oscuro (Por defecto para estética premium suave) */
+      --bg-body: #0b1120;
+      --bg-surface: #131c31;
+      --bg-card: #18233c;
+      --bg-card-hover: #1f2d4d;
+      --bg-input: #0f172a;
+      --border-subtle: #24324f;
+      --border-focus: #10b981;
+      
+      --text-main: #f8fafc;
+      --text-muted: #94a3b8;
+      --text-dim: #64748b;
+      
+      /* Acentos cromáticos */
+      --primary: #10b981;
+      --primary-hover: #059669;
+      --primary-soft: rgba(16, 185, 129, 0.15);
+      --primary-solid-text: #ffffff;
+      
+      --accent-purple: #8b5cf6;
+      --accent-purple-soft: rgba(139, 92, 246, 0.15);
+      
+      --warning: #f59e0b;
+      --warning-soft: rgba(245, 158, 11, 0.15);
+      --warning-border: rgba(245, 158, 11, 0.35);
+      
+      --danger: #ef4444;
+      --danger-soft: rgba(239, 68, 68, 0.15);
+      
+      --info: #38bdf8;
+      --info-soft: rgba(56, 189, 248, 0.15);
+      
+      --shadow-sm: 0 1px 2px 0 rgba(0, 0, 0, 0.3);
+      --shadow-md: 0 4px 12px -1px rgba(0, 0, 0, 0.4);
+      --shadow-lg: 0 12px 28px -4px rgba(0, 0, 0, 0.5);
+      
+      --radius-sm: 8px;
+      --radius-md: 12px;
+      --radius-lg: 18px;
+      --radius-full: 9999px;
+      
+      --bottom-nav-height: 68px;
+    }
+
+    [data-theme="light"] {
+      --bg-body: #f8fafc;
+      --bg-surface: #ffffff;
+      --bg-card: #ffffff;
+      --bg-card-hover: #f1f5f9;
+      --bg-input: #f8fafc;
+      --border-subtle: #e2e8f0;
+      --border-focus: #10b981;
+      
+      --text-main: #0f172a;
+      --text-muted: #64748b;
+      --text-dim: #94a3b8;
+      
+      --primary: #10b981;
+      --primary-hover: #059669;
+      --primary-soft: #ecfdf5;
+      --primary-solid-text: #ffffff;
+      
+      --accent-purple: #7c3aed;
+      --accent-purple-soft: #f5f3ff;
+      
+      --warning: #d97706;
+      --warning-soft: #fffbeb;
+      --warning-border: #fcd34d;
+      
+      --danger: #dc2626;
+      --danger-soft: #fef2f2;
+      
+      --info: #0284c7;
+      --info-soft: #f0f9ff;
+      
+      --shadow-sm: 0 1px 3px rgba(0, 0, 0, 0.05);
+      --shadow-md: 0 4px 12px rgba(0, 0, 0, 0.06);
+      --shadow-lg: 0 12px 28px rgba(0, 0, 0, 0.08);
+    }
+
+    /* ==========================================================================
+       RESET Y ESTILOS BASE
+       ========================================================================== */
+    *, *::before, *::after {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+      -webkit-tap-highlight-color: transparent;
+    }
+
+    body {
+      font-family: var(--font-family);
+      background-color: var(--bg-body);
+      color: var(--text-main);
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+      overflow-x: hidden;
+      padding-bottom: calc(var(--bottom-nav-height) + env(safe-area-inset-bottom, 20px) + 20px);
+      transition: background-color 0.3s ease, color 0.3s ease;
+    }
+
+    /* Tipografía y Enlaces */
+    h1, h2, h3, h4 {
+      font-weight: 700;
+      letter-spacing: -0.02em;
+      color: var(--text-main);
+    }
+
+    p {
+      color: var(--text-muted);
+      line-height: 1.5;
+    }
+
+    button, input, select, textarea {
+      font-family: inherit;
+      font-size: 0.95rem;
+      color: var(--text-main);
+    }
+
+    /* ==========================================================================
+       CONTENEDOR Y CABECERA (HEADER)
+       ========================================================================== */
+    .app-container {
+      width: 100%;
+      max-width: 1024px;
+      margin: 0 auto;
+      padding: 16px;
+    }
+
+    header.app-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 12px 0 20px;
+      border-bottom: 1px solid var(--border-subtle);
+      margin-bottom: 20px;
+    }
+
+    .brand-group {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
+
+    .brand-icon {
+      width: 44px;
+      height: 44px;
+      border-radius: var(--radius-md);
+      background: linear-gradient(135deg, #10b981 0%, #059669 100%);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      color: white;
+      box-shadow: 0 4px 12px rgba(16, 185, 129, 0.3);
+    }
+
+    .brand-text h1 {
+      font-size: 1.35rem;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+
+    .brand-text p {
+      font-size: 0.8rem;
+      color: var(--text-muted);
+    }
+
+    .header-actions {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+
+    .icon-btn {
+      background: var(--bg-surface);
+      border: 1px solid var(--border-subtle);
+      color: var(--text-muted);
+      width: 40px;
+      height: 40px;
+      border-radius: var(--radius-md);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      cursor: pointer;
+      transition: var(--transition-smooth);
+    }
+
+    .icon-btn:hover {
+      background: var(--bg-card-hover);
+      color: var(--text-main);
+      border-color: var(--text-dim);
+    }
+
+    /* ==========================================================================
+       NAVEGACIÓN DE PESTAÑAS (DESKTOP & MOBILE)
+       ========================================================================== */
+    /* Pestañas de escritorio */
+    .desktop-nav {
+      display: none;
+      background: var(--bg-surface);
+      border: 1px solid var(--border-subtle);
+      border-radius: var(--radius-lg);
+      padding: 6px;
+      margin-bottom: 24px;
+      gap: 6px;
+    }
+
+    .nav-tab-btn {
+      flex: 1;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 10px;
+      padding: 10px 18px;
+      background: transparent;
+      border: none;
+      border-radius: var(--radius-md);
+      color: var(--text-muted);
+      font-weight: 600;
+      cursor: pointer;
+      transition: var(--transition-smooth);
+      position: relative;
+    }
+
+    .nav-tab-btn:hover {
+      color: var(--text-main);
+      background: var(--bg-card-hover);
+    }
+
+    .nav-tab-btn.active {
+      background: var(--primary);
+      color: var(--primary-solid-text);
+      box-shadow: 0 4px 14px rgba(16, 185, 129, 0.25);
+    }
+
+    .tab-badge {
+      font-size: 0.72rem;
+      padding: 2px 7px;
+      border-radius: var(--radius-full);
+      background: rgba(0, 0, 0, 0.25);
+      color: white;
+      font-weight: 700;
+    }
+
+    .nav-tab-btn.active .tab-badge {
+      background: rgba(255, 255, 255, 0.3);
+    }
+
+    /* Barra de Navegación Móvil (Bottom Navigation Bar) */
+    .mobile-bottom-nav {
+      position: fixed;
+      bottom: 0;
+      left: 0;
+      right: 0;
+      height: calc(var(--bottom-nav-height) + env(safe-area-inset-bottom, 0px));
+      padding-bottom: env(safe-area-inset-bottom, 0px);
+      background: var(--bg-surface);
+      border-top: 1px solid var(--border-subtle);
+      display: flex;
+      align-items: center;
+      justify-content: space-around;
+      z-index: 1000;
+      backdrop-filter: blur(12px);
+      -webkit-backdrop-filter: blur(12px);
+    }
+
+    .bottom-nav-item {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      gap: 4px;
+      background: none;
+      border: none;
+      color: var(--text-muted);
+      cursor: pointer;
+      flex: 1;
+      height: 100%;
+      position: relative;
+      transition: var(--transition-smooth);
+    }
+
+    .bottom-nav-item.active {
+      color: var(--primary);
+    }
+
+    .bottom-nav-item svg {
+      width: 22px;
+      height: 22px;
+      transition: transform 0.2s cubic-bezier(0.34, 1.56, 0.64, 1);
+    }
+
+    .bottom-nav-item.active svg {
+      transform: translateY(-2px) scale(1.1);
+    }
+
+    .bottom-nav-label {
+      font-size: 0.72rem;
+      font-weight: 600;
+    }
+
+    .mobile-badge {
+      position: absolute;
+      top: 8px;
+      right: calc(50% - 20px);
+      min-width: 17px;
+      height: 17px;
+      padding: 0 4px;
+      border-radius: var(--radius-full);
+      background: var(--danger);
+      color: white;
+      font-size: 0.65rem;
+      font-weight: 700;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      border: 2px solid var(--bg-surface);
+    }
+
+    /* ==========================================================================
+       VISTAS / SECCIONES PRINCIPALES
+       ========================================================================== */
+    .view-section {
+      display: none;
+      animation: fadeIn 0.25s ease-out;
+    }
+
+    .view-section.active {
+      display: block;
+    }
+
+    @keyframes fadeIn {
+      from { opacity: 0; transform: translateY(6px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+
+    /* ==========================================================================
+       COMPONENTES COMUNES: TARJETAS, BOTONES, INPUTS, BADGES
+       ========================================================================== */
+    .card {
+      background: var(--bg-card);
+      border: 1px solid var(--border-subtle);
+      border-radius: var(--radius-lg);
+      padding: 18px;
+      margin-bottom: 16px;
+      box-shadow: var(--shadow-sm);
+      transition: var(--transition-smooth);
+    }
+
+    .card:hover {
+      border-color: rgba(16, 185, 129, 0.3);
+    }
+
+    .btn {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+      padding: 10px 18px;
+      border-radius: var(--radius-md);
+      font-weight: 600;
+      cursor: pointer;
+      border: 1px solid transparent;
+      transition: var(--transition-smooth);
+      text-decoration: none;
+    }
+
+    .btn-primary {
+      background: var(--primary);
+      color: var(--primary-solid-text);
+      box-shadow: 0 3px 10px rgba(16, 185, 129, 0.25);
+    }
+
+    .btn-primary:hover {
+      background: var(--primary-hover);
+    }
+
+    .btn-secondary {
+      background: var(--bg-surface);
+      color: var(--text-main);
+      border-color: var(--border-subtle);
+    }
+
+    .btn-secondary:hover {
+      background: var(--bg-card-hover);
+      border-color: var(--text-dim);
+    }
+
+    .btn-warning {
+      background: var(--warning-soft);
+      color: var(--warning);
+      border-color: var(--warning-border);
+    }
+
+    .btn-danger {
+      background: var(--danger-soft);
+      color: var(--danger);
+      border-color: rgba(239, 68, 68, 0.2);
+    }
+
+    .btn-icon-sm {
+      width: 32px;
+      height: 32px;
+      padding: 0;
+      border-radius: var(--radius-sm);
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      background: var(--bg-surface);
+      border: 1px solid var(--border-subtle);
+      color: var(--text-muted);
+      cursor: pointer;
+      transition: var(--transition-smooth);
+    }
+
+    .btn-icon-sm:hover {
+      color: var(--text-main);
+      background: var(--bg-card-hover);
+      border-color: var(--text-muted);
+    }
+
+    /* Badges de Estado */
+    .status-badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 5px;
+      padding: 3px 9px;
+      border-radius: var(--radius-full);
+      font-size: 0.75rem;
+      font-weight: 600;
+      letter-spacing: 0.01em;
+    }
+
+    .status-badge.disponible {
+      background: var(--primary-soft);
+      color: var(--primary);
+      border: 1px solid rgba(16, 185, 129, 0.3);
+    }
+
+    .status-badge.agotandose {
+      background: var(--warning-soft);
+      color: var(--warning);
+      border: 1px solid var(--warning-border);
+    }
+
+    .status-badge.agotado {
+      background: var(--danger-soft);
+      color: var(--danger);
+      border: 1px solid rgba(239, 68, 68, 0.3);
+    }
+
+    .tag {
+      display: inline-flex;
+      align-items: center;
+      gap: 4px;
+      padding: 3px 8px;
+      border-radius: var(--radius-sm);
+      font-size: 0.72rem;
+      font-weight: 500;
+      background: var(--bg-surface);
+      color: var(--text-muted);
+      border: 1px solid var(--border-subtle);
+    }
+
+    /* Barra de Búsqueda y Filtros */
+    .search-filter-panel {
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+      margin-bottom: 20px;
+    }
+
+    .search-input-wrap {
+      position: relative;
+      width: 100%;
+    }
+
+    .search-input-wrap svg {
+      position: absolute;
+      left: 14px;
+      top: 50%;
+      transform: translateY(-50%);
+      color: var(--text-dim);
+      pointer-events: none;
+    }
+
+    .search-input-wrap input {
+      width: 100%;
+      padding: 12px 14px 12px 42px;
+      background: var(--bg-surface);
+      border: 1px solid var(--border-subtle);
+      border-radius: var(--radius-md);
+      color: var(--text-main);
+      outline: none;
+      transition: var(--transition-smooth);
+    }
+
+    .search-input-wrap input:focus {
+      border-color: var(--primary);
+      box-shadow: 0 0 0 3px var(--primary-soft);
+    }
+
+    .filter-chips-row {
+      display: flex;
+      gap: 8px;
+      overflow-x: auto;
+      padding-bottom: 4px;
+      scrollbar-width: none;
+    }
+
+    .filter-chips-row::-webkit-scrollbar {
+      display: none;
+    }
+
+    .filter-chip {
+      padding: 6px 14px;
+      border-radius: var(--radius-full);
+      background: var(--bg-surface);
+      border: 1px solid var(--border-subtle);
+      color: var(--text-muted);
+      font-size: 0.8rem;
+      font-weight: 500;
+      cursor: pointer;
+      white-space: nowrap;
+      transition: var(--transition-smooth);
+    }
+
+    .filter-chip.active {
+      background: var(--primary-soft);
+      border-color: var(--primary);
+      color: var(--primary);
+      font-weight: 600;
+    }
+
+    .filter-selects-row {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 10px;
+    }
+
+    .custom-select {
+      width: 100%;
+      padding: 9px 12px;
+      background: var(--bg-surface);
+      border: 1px solid var(--border-subtle);
+      border-radius: var(--radius-md);
+      color: var(--text-main);
+      outline: none;
+      cursor: pointer;
+    }
+
+    .custom-select:focus {
+      border-color: var(--primary);
+    }
+
+    /* Tarjetas de Estadísticas / Resumen Superior */
+    .stats-grid {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 10px;
+      margin-bottom: 20px;
+    }
+
+    .stat-card {
+      background: var(--bg-card);
+      border: 1px solid var(--border-subtle);
+      border-radius: var(--radius-md);
+      padding: 12px;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      text-align: center;
+      gap: 4px;
+    }
+
+    .stat-card .num {
+      font-size: 1.4rem;
+      font-weight: 800;
+      color: var(--text-main);
+    }
+
+    .stat-card .label {
+      font-size: 0.72rem;
+      color: var(--text-muted);
+      text-transform: uppercase;
+      font-weight: 600;
+    }
+
+    .stat-card.disponible .num { color: var(--primary); }
+    .stat-card.agotandose .num { color: var(--warning); }
+    .stat-card.agotado .num { color: var(--danger); }
+
+    /* ==========================================================================
+       LISTA DE PRODUCTOS DEL INVENTARIO
+       ========================================================================== */
+    .inventory-grid {
+      display: grid;
+      grid-template-columns: 1fr;
+      gap: 12px;
+    }
+
+    .inventory-item-card {
+      background: var(--bg-card);
+      border: 1px solid var(--border-subtle);
+      border-radius: var(--radius-md);
+      padding: 14px 16px;
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+      position: relative;
+      transition: var(--transition-smooth);
+    }
+
+    .inventory-item-card:hover {
+      border-color: rgba(16, 185, 129, 0.4);
+      transform: translateY(-1px);
+      box-shadow: var(--shadow-md);
+    }
+
+    .item-header {
+      display: flex;
+      align-items: flex-start;
+      justify-content: space-between;
+      gap: 10px;
+    }
+
+    .item-title-group h3 {
+      font-size: 1.05rem;
+      margin-bottom: 4px;
+    }
+
+    .item-tags {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 6px;
+    }
+
+    .item-body {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding-top: 6px;
+      border-top: 1px dashed var(--border-subtle);
+    }
+
+    /* Contador Rápido (+ / -) */
+    .quantity-stepper {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      background: var(--bg-surface);
+      padding: 4px 6px;
+      border-radius: var(--radius-md);
+      border: 1px solid var(--border-subtle);
+    }
+
+    .stepper-btn {
+      width: 28px;
+      height: 28px;
+      border-radius: var(--radius-sm);
+      border: none;
+      background: var(--bg-card);
+      color: var(--text-main);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      cursor: pointer;
+      font-weight: 700;
+      transition: var(--transition-smooth);
+    }
+
+    .stepper-btn:hover {
+      background: var(--primary);
+      color: white;
+    }
+
+    .quantity-val {
+      font-weight: 700;
+      font-size: 0.95rem;
+      min-width: 44px;
+      text-align: center;
+      color: var(--text-main);
+    }
+
+    .item-actions {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+
+    /* ==========================================================================
+       MÓDULO: LISTA DE LA COMPRA (SISTEMA ANTIDUPLICADOS)
+       ========================================================================== */
+    .add-shopping-quickbar {
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+      background: var(--bg-card);
+      border: 1px solid var(--border-subtle);
+      border-radius: var(--radius-lg);
+      padding: 16px;
+      margin-bottom: 20px;
+      box-shadow: var(--shadow-sm);
+    }
+
+    .shopping-input-row {
+      display: flex;
+      gap: 8px;
+    }
+
+    .shopping-input-row input {
+      flex: 1;
+      padding: 12px 16px;
+      background: var(--bg-surface);
+      border: 1px solid var(--border-subtle);
+      border-radius: var(--radius-md);
+      color: var(--text-main);
+      outline: none;
+    }
+
+    .shopping-input-row input:focus {
+      border-color: var(--primary);
+    }
+
+    .shopping-input-row .qty-input {
+      width: 70px;
+      flex: none;
+      text-align: center;
+    }
+
+    /* AVISO VISUAL ANTIDUPLICADOS */
+    .antidup-alert {
+      display: none;
+      animation: alertSlideDown 0.25s ease-out;
+      background: var(--warning-soft);
+      border: 1px solid var(--warning-border);
+      border-left: 4px solid var(--warning);
+      border-radius: var(--radius-md);
+      padding: 12px 14px;
+      margin-top: 4px;
+    }
+
+    .antidup-alert.visible {
+      display: flex;
+      align-items: flex-start;
+      gap: 10px;
+    }
+
+    @keyframes alertSlideDown {
+      from { opacity: 0; transform: translateY(-8px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+
+    .antidup-alert-content {
+      flex: 1;
+    }
+
+    .antidup-alert-title {
+      font-size: 0.85rem;
+      font-weight: 700;
+      color: var(--warning);
+      margin-bottom: 2px;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+
+    .antidup-alert-desc {
+      font-size: 0.8rem;
+      color: var(--text-main);
+      line-height: 1.4;
+    }
+
+    .antidup-alert-actions {
+      margin-top: 8px;
+      display: flex;
+      gap: 8px;
+    }
+
+    /* Elementos de la lista de la compra */
+    .shopping-list {
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+    }
+
+    .shopping-item-card {
+      background: var(--bg-card);
+      border: 1px solid var(--border-subtle);
+      border-radius: var(--radius-md);
+      padding: 14px 16px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 12px;
+      transition: var(--transition-smooth);
+    }
+
+    .shopping-item-card.completed {
+      opacity: 0.55;
+      background: var(--bg-surface);
+    }
+
+    .shopping-item-left {
+      display: flex;
+      align-items: center;
+      gap: 14px;
+      flex: 1;
+    }
+
+    /* Checkbox circular custom */
+    .custom-checkbox {
+      width: 24px;
+      height: 24px;
+      border-radius: 50%;
+      border: 2px solid var(--text-dim);
+      background: transparent;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      cursor: pointer;
+      transition: var(--transition-smooth);
+      flex-shrink: 0;
+    }
+
+    .custom-checkbox.checked {
+      background: var(--primary);
+      border-color: var(--primary);
+      color: white;
+      transform: scale(1.05);
+    }
+
+    .shopping-item-text h4 {
+      font-size: 1rem;
+      font-weight: 600;
+      transition: var(--transition-smooth);
+    }
+
+    .shopping-item-card.completed .shopping-item-text h4 {
+      text-decoration: line-through;
+      color: var(--text-dim);
+    }
+
+    .shopping-item-text .meta {
+      font-size: 0.75rem;
+      color: var(--text-muted);
+      display: flex;
+      gap: 8px;
+      align-items: center;
+      margin-top: 2px;
+    }
+
+    .sync-pill {
+      font-size: 0.7rem;
+      padding: 2px 6px;
+      background: var(--primary-soft);
+      color: var(--primary);
+      border-radius: var(--radius-sm);
+      display: inline-flex;
+      align-items: center;
+      gap: 4px;
+    }
+
+    /* Botón especial: Añadir agotados desde inventario */
+    .auto-sync-banner {
+      background: linear-gradient(135deg, rgba(16, 185, 129, 0.1) 0%, rgba(56, 189, 248, 0.1) 100%);
+      border: 1px dashed var(--primary);
+      border-radius: var(--radius-md);
+      padding: 12px 16px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 12px;
+      margin-bottom: 16px;
+    }
+
+    .auto-sync-banner p {
+      font-size: 0.82rem;
+      color: var(--text-main);
+    }
+
+    /* ==========================================================================
+       MÓDULO: AGENDA / TAREAS (TO-DO LIST)
+       ========================================================================== */
+    .task-list {
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+    }
+
+    .task-item-card {
+      background: var(--bg-card);
+      border: 1px solid var(--border-subtle);
+      border-radius: var(--radius-md);
+      padding: 14px 16px;
+      display: flex;
+      align-items: flex-start;
+      gap: 14px;
+      transition: var(--transition-smooth);
+    }
+
+    .task-item-card.completed {
+      opacity: 0.6;
+      background: var(--bg-surface);
+    }
+
+    .task-item-content {
+      flex: 1;
+    }
+
+    .task-item-content h4 {
+      font-size: 1rem;
+      font-weight: 600;
+      margin-bottom: 4px;
+    }
+
+    .task-item-card.completed .task-item-content h4 {
+      text-decoration: line-through;
+      color: var(--text-dim);
+    }
+
+    .task-item-content p {
+      font-size: 0.85rem;
+      margin-bottom: 8px;
+    }
+
+    .task-meta-row {
+      display: flex;
+      flex-wrap: wrap;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .due-date-tag {
+      font-size: 0.75rem;
+      font-weight: 600;
+      padding: 2px 8px;
+      border-radius: var(--radius-sm);
+      display: inline-flex;
+      align-items: center;
+      gap: 4px;
+      background: var(--bg-surface);
+      color: var(--text-muted);
+      border: 1px solid var(--border-subtle);
+    }
+
+    .due-date-tag.overdue {
+      background: var(--danger-soft);
+      color: var(--danger);
+      border-color: rgba(239, 68, 68, 0.3);
+    }
+
+    .due-date-tag.today {
+      background: var(--warning-soft);
+      color: var(--warning);
+      border-color: var(--warning-border);
+    }
+
+    .priority-badge {
+      font-size: 0.7rem;
+      font-weight: 700;
+      padding: 2px 6px;
+      border-radius: var(--radius-sm);
+      text-transform: uppercase;
+    }
+
+    .priority-badge.alta { background: var(--danger-soft); color: var(--danger); }
+    .priority-badge.media { background: var(--warning-soft); color: var(--warning); }
+    .priority-badge.baja { background: var(--info-soft); color: var(--info); }
+
+    /* ==========================================================================
+       MODALES Y BOTTOM SHEETS
+       ========================================================================== */
+    .modal-overlay {
+      position: fixed;
+      top: 0;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      background: rgba(0, 0, 0, 0.65);
+      backdrop-filter: blur(4px);
+      -webkit-backdrop-filter: blur(4px);
+      z-index: 2000;
+      display: none;
+      align-items: flex-end; /* Bottom sheet en móviles */
+      justify-content: center;
+      opacity: 0;
+      transition: opacity 0.2s ease;
+    }
+
+    .modal-overlay.active {
+      display: flex;
+      opacity: 1;
+    }
+
+    .modal-container {
+      background: var(--bg-surface);
+      border-top: 1px solid var(--border-subtle);
+      border-radius: 20px 20px 0 0;
+      width: 100%;
+      max-width: 560px;
+      max-height: 90vh;
+      overflow-y: auto;
+      padding: 24px 20px;
+      box-shadow: var(--shadow-lg);
+      transform: translateY(100%);
+      transition: transform 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+    }
+
+    .modal-overlay.active .modal-container {
+      transform: translateY(0);
+    }
+
+    @media (min-width: 640px) {
+      .modal-overlay {
+        align-items: center; /* Centrado en escritorio */
+        padding: 20px;
+      }
+      .modal-container {
+        border: 1px solid var(--border-subtle);
+        border-radius: var(--radius-lg);
+        transform: scale(0.95);
+      }
+      .modal-overlay.active .modal-container {
+        transform: scale(1);
+      }
+    }
+
+    .modal-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin-bottom: 20px;
+      padding-bottom: 12px;
+      border-bottom: 1px solid var(--border-subtle);
+    }
+
+    .modal-header h3 {
+      font-size: 1.2rem;
+    }
+
+    .form-group {
+      margin-bottom: 16px;
+    }
+
+    .form-group label {
+      display: block;
+      font-size: 0.82rem;
+      font-weight: 600;
+      margin-bottom: 6px;
+      color: var(--text-muted);
+    }
+
+    .form-control {
+      width: 100%;
+      padding: 11px 14px;
+      background: var(--bg-input);
+      border: 1px solid var(--border-subtle);
+      border-radius: var(--radius-md);
+      color: var(--text-main);
+      outline: none;
+      transition: var(--transition-smooth);
+    }
+
+    .form-control:focus {
+      border-color: var(--primary);
+      box-shadow: 0 0 0 3px var(--primary-soft);
+    }
+
+    .form-grid-2 {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 12px;
+    }
+
+    .modal-footer {
+      display: flex;
+      justify-content: flex-end;
+      gap: 10px;
+      margin-top: 24px;
+    }
+
+    /* ==========================================================================
+       TOAST NOTIFICATIONS (FEEDBACK FLOTANTE)
+       ========================================================================== */
+    .toast-container {
+      position: fixed;
+      bottom: calc(var(--bottom-nav-height) + env(safe-area-inset-bottom, 20px) + 15px);
+      left: 50%;
+      transform: translateX(-50%);
+      z-index: 3000;
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+      pointer-events: none;
+      width: 90%;
+      max-width: 420px;
+    }
+
+    .toast {
+      background: #0f172a;
+      color: #f8fafc;
+      border: 1px solid rgba(255, 255, 255, 0.15);
+      border-radius: var(--radius-md);
+      padding: 12px 16px;
+      box-shadow: var(--shadow-lg);
+      font-size: 0.88rem;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      pointer-events: auto;
+      animation: toastIn 0.3s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+    }
+
+    [data-theme="light"] .toast {
+      background: #1e293b;
+      color: #ffffff;
+    }
+
+    @keyframes toastIn {
+      from { opacity: 0; transform: translateY(12px) scale(0.95); }
+      to { opacity: 1; transform: translateY(0) scale(1); }
+    }
+
+    .toast.hide {
+      animation: toastOut 0.25s ease-in forwards;
+    }
+
+    @keyframes toastOut {
+      from { opacity: 1; transform: translateY(0); }
+      to { opacity: 0; transform: translateY(12px); }
+    }
+
+    /* Estado Vacío (Empty State) */
+    .empty-state {
+      text-align: center;
+      padding: 40px 20px;
+      color: var(--text-muted);
+    }
+
+    .empty-state svg {
+      width: 56px;
+      height: 56px;
+      margin-bottom: 12px;
+      opacity: 0.4;
+      color: var(--text-dim);
+    }
+
+    .empty-state h4 {
+      font-size: 1.1rem;
+      color: var(--text-main);
+      margin-bottom: 6px;
+    }
+
+    .empty-state p {
+      font-size: 0.85rem;
+      max-width: 320px;
+      margin: 0 auto 16px;
+    }
+
+    /* Botón Flotante de Acción Rápida (FAB) */
+    .fab-btn {
+      position: fixed;
+      right: 20px;
+      bottom: calc(var(--bottom-nav-height) + env(safe-area-inset-bottom, 20px) + 20px);
+      width: 54px;
+      height: 54px;
+      border-radius: 50%;
+      background: var(--primary);
+      color: white;
+      border: none;
+      box-shadow: 0 6px 18px rgba(16, 185, 129, 0.4);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      cursor: pointer;
+      z-index: 900;
+      transition: transform 0.2s cubic-bezier(0.34, 1.56, 0.64, 1);
+    }
+
+    .fab-btn:active {
+      transform: scale(0.92);
+    }
+
+    /* ==========================================================================
+       MEDIA QUERIES (RESPONSIVE DESKTOP)
+       ========================================================================== */
+    @media (min-width: 768px) {
+      body {
+        padding-bottom: 40px;
+      }
+      .desktop-nav {
+        display: flex;
+      }
+      .mobile-bottom-nav {
+        display: none;
+      }
+      .inventory-grid {
+        grid-template-columns: repeat(2, 1fr);
+      }
+      .toast-container {
+        bottom: 30px;
+      }
+      .fab-btn {
+        bottom: 40px;
+        right: calc(50% - 500px + 20px);
+      }
+    }
+
+    @media (min-width: 1024px) {
+      .inventory-grid {
+        grid-template-columns: repeat(3, 1fr);
+      }
+    }
+  </style>
+</head>
+<body>
+
+  <!-- ==========================================================================
+       CONTENEDOR DE LA APLICACIÓN
+       ========================================================================== -->
+  <div class="app-container">
+    
+    <!-- ENCABEZADO SUPERIOR -->
+    <header class="app-header">
+      <div class="brand-group">
+        <div class="brand-icon">
+          <!-- Logo SVG Home & Box -->
+          <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+            <path d="m3 9 9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/>
+            <polyline points="9 22 9 12 15 12 15 22"/>
+          </svg>
+        </div>
+        <div class="brand-text">
+          <h1>Buzgenda</h1>
+          <p>Organización Integral del Hogar</p>
+        </div>
+      </div>
+
+      <div class="header-actions">
+        <!-- Toggle Modo Oscuro / Claro -->
+        <button id="themeToggleBtn" class="icon-btn" title="Cambiar tema (Claro/Oscuro)">
+          <svg id="themeIconSun" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <circle cx="12" cy="12" r="4"/><path d="M12 2v2"/><path d="M12 20v2"/><path d="m4.93 4.93 1.41 1.41"/><path d="m17.66 17.66 1.41 1.41"/><path d="M2 12h2"/><path d="M20 12h2"/><path d="m6.34 17.66-1.41 1.41"/><path d="m19.07 4.93-1.41 1.41"/>
+          </svg>
+          <svg id="themeIconMoon" style="display:none;" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M12 3a6 6 0 0 0 9 9 9 9 0 1 1-9-9Z"/>
+          </svg>
+        </button>
+
+        <!-- Botón de Copia / Reset de Datos -->
+        <button id="backupBtn" class="icon-btn" title="Gestionar datos (Exportar/Reset)">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" x2="12" y1="15" y2="3"/>
+          </svg>
+        </button>
+      </div>
+    </header>
+
+    <!-- NAVEGACIÓN EN PANTALLAS GRANDES (DESKTOP TABS) -->
+    <nav class="desktop-nav">
+      <button class="nav-tab-btn active" data-tab="inventory">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <path d="M21 8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16Z"/>
+          <path d="m3.3 7 8.7 5 8.7-5"/><path d="M12 22V12"/>
+        </svg>
+        <span>Inventario del Hogar</span>
+        <span class="tab-badge" id="badgeInventoryDesk">0</span>
+      </button>
+
+      <button class="nav-tab-btn" data-tab="shopping">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <circle cx="8" cy="21" r="1"/><circle cx="19" cy="21" r="1"/><path d="M2.05 2.05h2l2.66 12.42a2 2 0 0 0 2 1.58h9.78a2 2 0 0 0 1.95-1.57l1.65-7.43H5.12"/>
+        </svg>
+        <span>Lista de la Compra</span>
+        <span class="tab-badge" id="badgeShoppingDesk">0</span>
+      </button>
+
+      <button class="nav-tab-btn" data-tab="agenda">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <rect width="18" height="18" x="3" y="4" rx="2" ry="2"/><line x1="16" x2="16" y1="2" y2="6"/><line x1="8" x2="8" y1="2" y2="6"/><line x1="3" x2="21" y1="10" y2="10"/><path d="m9 16 2 2 4-4"/>
+        </svg>
+        <span>Agenda / Tareas</span>
+        <span class="tab-badge" id="badgeAgendaDesk">0</span>
+      </button>
+    </nav>
+
+    <!-- ==========================================================================
+         SECCIÓN 1: INVENTARIO DEL HOGAR (EL NÚCLEO)
+         ========================================================================== -->
+    <section id="viewInventory" class="view-section active">
+      
+      <!-- Resumen Estadístico Rápido -->
+      <div class="stats-grid">
+        <div class="stat-card disponible">
+          <span class="num" id="statDisponible">0</span>
+          <span class="label">Disponibles</span>
+        </div>
+        <div class="stat-card agotandose">
+          <span class="num" id="statAgotandose">0</span>
+          <span class="label">Agotándose</span>
+        </div>
+        <div class="stat-card agotado">
+          <span class="num" id="statAgotado">0</span>
+          <span class="label">Agotados</span>
+        </div>
+      </div>
+
+      <!-- Barra de Búsqueda y Filtros -->
+      <div class="search-filter-panel">
+        <div class="search-input-wrap">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <circle cx="11" cy="11" r="8"/><path d="m21 21-4.3-4.3"/>
+          </svg>
+          <input type="text" id="inventorySearchInput" placeholder="Buscar por producto, ubicación o categoría..." autocomplete="off">
+        </div>
+
+        <!-- Chips de Estado -->
+        <div class="filter-chips-row" id="inventoryStatusChips">
+          <button class="filter-chip active" data-filter="all">Todos los estados</button>
+          <button class="filter-chip" data-filter="Disponible">🟢 Disponibles</button>
+          <button class="filter-chip" data-filter="Agotándose">🟡 Agotándose</button>
+          <button class="filter-chip" data-filter="Agotado">🔴 Agotados</button>
+        </div>
+
+        <!-- Selectores de Ubicación y Categoría -->
+        <div class="filter-selects-row">
+          <select id="filterLocationSelect" class="custom-select">
+            <option value="">Todas las ubicaciones</option>
+            <option value="Nevera">Nevera</option>
+            <option value="Congelador">Congelador</option>
+            <option value="Despensa">Despensa</option>
+            <option value="Armario de la cocina">Armario de la cocina</option>
+            <option value="Baño">Baño</option>
+            <option value="Trastero">Trastero</option>
+            <option value="Lavadero">Lavadero</option>
+            <option value="Otro">Otro</option>
+          </select>
+
+          <select id="filterCategorySelect" class="custom-select">
+            <option value="">Todas las categorías</option>
+            <option value="Alimentación">Alimentación</option>
+            <option value="Lácteos y Huevos">Lácteos y Huevos</option>
+            <option value="Frutas y Verduras">Frutas y Verduras</option>
+            <option value="Bebidas">Bebidas</option>
+            <option value="Congelados">Congelados</option>
+            <option value="Limpieza">Limpieza</option>
+            <option value="Higiene personal">Higiene personal</option>
+            <option value="Farmacia">Farmacia</option>
+            <option value="Hogar y Bricolaje">Hogar y Bricolaje</option>
+            <option value="Otros">Otros</option>
+          </select>
+        </div>
+      </div>
+
+      <!-- Cuadrícula / Lista de Productos del Inventario -->
+      <div id="inventoryContainer" class="inventory-grid">
+        <!-- Render dinámico desde JavaScript -->
+      </div>
+    </section>
+
+    <!-- ==========================================================================
+         SECCIÓN 2: LISTA DE LA COMPRA (INTELIGENTE E INTERCONECTADA)
+         ========================================================================== -->
+    <section id="viewShopping" class="view-section">
+      
+      <!-- Banner Sincronizador: Añadir automáticamente agotados -->
+      <div class="auto-sync-banner" id="autoSyncBanner">
+        <div>
+          <p><strong>💡 ¿Reponer existencias?</strong></p>
+          <p style="font-size:0.75rem; color:var(--text-muted);">Puedes añadir de 1 clic todos los productos que están agotados en el inventario.</p>
+        </div>
+        <button id="importLowStockBtn" class="btn btn-secondary" style="font-size:0.8rem; padding:6px 12px; white-space:nowrap;">
+          + Añadir Agotados
+        </button>
+      </div>
+
+      <!-- Barra Rápida de Añadir con DETECCIÓN ANTIDUPLICADOS EN TIEMPO REAL -->
+      <div class="add-shopping-quickbar">
+        <div style="display:flex; justify-content:space-between; align-items:center;">
+          <h3 style="font-size:0.95rem;">Añadir a la Lista de la Compra</h3>
+          <span style="font-size:0.75rem; color:var(--text-muted);" id="shoppingSummaryCount">0 pendientes</span>
+        </div>
+
+        <form id="quickShoppingForm" onsubmit="return false;">
+          <div class="shopping-input-row">
+            <input type="text" id="quickShoppingName" placeholder="Nombre del producto (ej: Leche entera, Detergente...)" autocomplete="off">
+            <input type="number" id="quickShoppingQty" class="qty-input" value="1" min="1" step="1" title="Cantidad">
+            <button type="submit" id="quickShoppingSubmitBtn" class="btn btn-primary" title="Añadir a la lista">
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+                <line x1="12" x2="12" y1="5" y2="19"/><line x1="5" x2="19" y1="12" y2="12"/>
+              </svg>
+            </button>
+          </div>
+
+          <!-- BANNER VISUAL ANTIDUPLICADOS (Aparece dinámicamente si ya existe en el Inventario) -->
+          <div id="antidupAlert" class="antidup-alert">
+            <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="color:var(--warning); flex-shrink:0; margin-top:2px;">
+              <path d="m21.73 18-8-14a2 2 0 0 0-3.48 0l-8 14A2 2 0 0 0 4 21h16a2 2 0 0 0 1.73-3Z"/>
+              <line x1="12" x2="12" y1="9" y2="13"/><line x1="12" x2="12.01" y1="17" y2="17"/>
+            </svg>
+            <div class="antidup-alert-content">
+              <div class="antidup-alert-title">¡Atención! Producto ya existente en inventario</div>
+              <div class="antidup-alert-desc" id="antidupAlertText">
+                <!-- Texto inyectado por JS -->
+              </div>
+              <div class="antidup-alert-actions">
+                <button type="button" id="antidupAddAnywayBtn" class="btn btn-warning" style="font-size:0.75rem; padding:4px 10px;">
+                  Añadir de todos modos
+                </button>
+                <button type="button" id="antidupGoToItemBtn" class="btn btn-secondary" style="font-size:0.75rem; padding:4px 10px;">
+                  Ver en Inventario
+                </button>
+              </div>
+            </div>
+          </div>
+        </form>
+      </div>
+
+      <!-- Lista de Ítems de Compra -->
+      <div id="shoppingContainer" class="shopping-list">
+        <!-- Render dinámico desde JavaScript -->
+      </div>
+
+      <!-- Acciones de lista -->
+      <div style="display:flex; justify-content:space-between; margin-top:16px;">
+        <button id="clearCompletedShoppingBtn" class="btn btn-secondary" style="font-size:0.8rem; padding:6px 12px;">
+          Limpiar comprados
+        </button>
+      </div>
+    </section>
+
+    <!-- ==========================================================================
+         SECCIÓN 3: AGENDA / LISTA DE TAREAS (TO-DO LIST)
+         ========================================================================== -->
+    <section id="viewAgenda" class="view-section">
+      
+      <!-- Filtros de Tareas -->
+      <div class="search-filter-panel">
+        <div class="filter-chips-row" id="taskFilterChips">
+          <button class="filter-chip active" data-task-filter="all">Todas</button>
+          <button class="filter-chip" data-task-filter="pending">Pendientes</button>
+          <button class="filter-chip" data-task-filter="today">Para Hoy</button>
+          <button class="filter-chip" data-task-filter="overdue">Vencidas</button>
+          <button class="filter-chip" data-task-filter="completed">Completadas</button>
+        </div>
+      </div>
+
+      <!-- Lista de Tareas -->
+      <div id="agendaContainer" class="task-list">
+        <!-- Render dinámico desde JavaScript -->
+      </div>
+    </section>
+
+  </div> <!-- Fin app-container -->
+
+  <!-- ==========================================================================
+       BARRA DE NAVEGACIÓN MÓVIL INFERIOR (BOTTOM NAV BAR)
+       ========================================================================== -->
+  <nav class="mobile-bottom-nav">
+    <button class="bottom-nav-item active" data-tab="inventory">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+        <path d="M21 8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16Z"/>
+        <path d="m3.3 7 8.7 5 8.7-5"/><path d="M12 22V12"/>
+      </svg>
+      <span class="bottom-nav-label">Inventario</span>
+      <span class="mobile-badge" id="badgeInventoryMobile" style="display:none;">0</span>
+    </button>
+
+    <button class="bottom-nav-item" data-tab="shopping">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+        <circle cx="8" cy="21" r="1"/><circle cx="19" cy="21" r="1"/><path d="M2.05 2.05h2l2.66 12.42a2 2 0 0 0 2 1.58h9.78a2 2 0 0 0 1.95-1.57l1.65-7.43H5.12"/>
+      </svg>
+      <span class="bottom-nav-label">Compra</span>
+      <span class="mobile-badge" id="badgeShoppingMobile" style="display:none;">0</span>
+    </button>
+
+    <button class="bottom-nav-item" data-tab="agenda">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+        <rect width="18" height="18" x="3" y="4" rx="2" ry="2"/><line x1="16" x2="16" y1="2" y2="6"/><line x1="8" x2="8" y1="2" y2="6"/><line x1="3" x2="21" y1="10" y2="10"/><path d="m9 16 2 2 4-4"/>
+      </svg>
+      <span class="bottom-nav-label">Agenda</span>
+      <span class="mobile-badge" id="badgeAgendaMobile" style="display:none;">0</span>
+    </button>
+  </nav>
+
+  <!-- BOTÓN FLOTANTE (FAB) PARA AÑADIR ELEMENTOS RÁPIDAMENTE -->
+  <button id="mainFabBtn" class="fab-btn" title="Añadir nuevo registro">
+    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+      <line x1="12" x2="12" y1="5" y2="19"/><line x1="5" x2="19" y1="12" y2="12"/>
+    </svg>
+  </button>
+
+  <!-- ==========================================================================
+       MODAL 1: NUEVO / EDITAR PRODUCTO DE INVENTARIO
+       ========================================================================== -->
+  <div id="modalInventory" class="modal-overlay">
+    <div class="modal-container">
+      <div class="modal-header">
+        <h3 id="modalInventoryTitle">Nuevo Producto en Inventario</h3>
+        <button type="button" class="btn-icon-sm close-modal-btn">✕</button>
+      </div>
+      <form id="formInventory">
+        <input type="hidden" id="invFormId">
+
+        <div class="form-group">
+          <label for="invFormName">Nombre del Producto *</label>
+          <input type="text" id="invFormName" class="form-control" required placeholder="ej: Leche Entera, Papel Higiénico...">
+        </div>
+
+        <div class="form-grid-2">
+          <div class="form-group">
+            <label for="invFormCategory">Categoría</label>
+            <select id="invFormCategory" class="form-control">
+              <option value="Alimentación">Alimentación</option>
+              <option value="Lácteos y Huevos">Lácteos y Huevos</option>
+              <option value="Frutas y Verduras">Frutas y Verduras</option>
+              <option value="Bebidas">Bebidas</option>
+              <option value="Congelados">Congelados</option>
+              <option value="Limpieza">Limpieza</option>
+              <option value="Higiene personal">Higiene personal</option>
+              <option value="Farmacia">Farmacia</option>
+              <option value="Hogar y Bricolaje">Hogar y Bricolaje</option>
+              <option value="Otros">Otros</option>
+            </select>
+          </div>
+
+          <div class="form-group">
+            <label for="invFormLocation">Ubicación Exacta *</label>
+            <select id="invFormLocation" class="form-control">
+              <option value="Nevera">Nevera</option>
+              <option value="Congelador">Congelador</option>
+              <option value="Despensa">Despensa</option>
+              <option value="Armario de la cocina">Armario de la cocina</option>
+              <option value="Baño">Baño</option>
+              <option value="Trastero">Trastero</option>
+              <option value="Lavadero">Lavadero</option>
+              <option value="Otro">Otro</option>
+            </select>
+          </div>
+        </div>
+
+        <div class="form-grid-2">
+          <div class="form-group">
+            <label for="invFormQuantity">Cantidad Actual</label>
+            <input type="number" id="invFormQuantity" class="form-control" value="1" min="0" step="1">
+          </div>
+
+          <div class="form-group">
+            <label for="invFormUnit">Unidad</label>
+            <input type="text" id="invFormUnit" class="form-control" value="ud" placeholder="ud, l, kg, paq">
+          </div>
+        </div>
+
+        <div class="form-grid-2">
+          <div class="form-group">
+            <label for="invFormStatus">Estado del Stock</label>
+            <select id="invFormStatus" class="form-control">
+              <option value="Disponible">Disponible (🟢)</option>
+              <option value="Agotándose">Agotándose (🟡)</option>
+              <option value="Agotado">Agotado (🔴)</option>
+            </select>
+          </div>
+
+          <div class="form-group">
+            <label for="invFormMinStock">Umbral Alerta Mínimo</label>
+            <input type="number" id="invFormMinStock" class="form-control" value="1" min="0" step="1" title="Cuando la cantidad llegue a este número o menor, se considerará agotándose">
+          </div>
+        </div>
+
+        <div class="modal-footer">
+          <button type="button" class="btn btn-secondary close-modal-btn">Cancelar</button>
+          <button type="submit" class="btn btn-primary">Guardar Producto</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- ==========================================================================
+       MODAL 2: NUEVA / EDITAR TAREA DE AGENDA
+       ========================================================================== -->
+  <div id="modalTask" class="modal-overlay">
+    <div class="modal-container">
+      <div class="modal-header">
+        <h3 id="modalTaskTitle">Nueva Tarea del Hogar</h3>
+        <button type="button" class="btn-icon-sm close-modal-btn">✕</button>
+      </div>
+      <form id="formTask">
+        <input type="hidden" id="taskFormId">
+
+        <div class="form-group">
+          <label for="taskFormTitle">Título de la Tarea *</label>
+          <input type="text" id="taskFormTitle" class="form-control" required placeholder="ej: Descongelar el frigorífico, Pagar comunidad...">
+        </div>
+
+        <div class="form-group">
+          <label for="taskFormDesc">Descripción o Notas (Opcional)</label>
+          <textarea id="taskFormDesc" class="form-control" rows="2" placeholder="Detalles adicionales..."></textarea>
+        </div>
+
+        <div class="form-grid-2">
+          <div class="form-group">
+            <label for="taskFormDueDate">Fecha de Vencimiento *</label>
+            <input type="date" id="taskFormDueDate" class="form-control" required>
+          </div>
+
+          <div class="form-group">
+            <label for="taskFormPriority">Prioridad</label>
+            <select id="taskFormPriority" class="form-control">
+              <option value="Media">Media</option>
+              <option value="Alta">Alta</option>
+              <option value="Baja">Baja</option>
+            </select>
+          </div>
+        </div>
+
+        <div class="modal-footer">
+          <button type="button" class="btn btn-secondary close-modal-btn">Cancelar</button>
+          <button type="submit" class="btn btn-primary">Guardar Tarea</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- ==========================================================================
+       MODAL 3: GESTIÓN Y BACKUP DE DATOS
+       ========================================================================== -->
+  <div id="modalBackup" class="modal-overlay">
+    <div class="modal-container">
+      <div class="modal-header">
+        <h3>Gestión de Datos & Copia de Seguridad</h3>
+        <button type="button" class="btn-icon-sm close-modal-btn">✕</button>
+      </div>
+      <p style="margin-bottom:16px; font-size:0.85rem;">Tus datos se guardan de forma 100% privada y local en tu dispositivo. Puedes exportar una copia o restaurarla en cualquier momento.</p>
+      
+      <div style="display:flex; flex-direction:column; gap:12px;">
+        <button id="exportDataBtn" class="btn btn-secondary" style="justify-content:flex-start;">
+          📥 Descargar copia de seguridad (JSON)
+        </button>
+        
+        <label class="btn btn-secondary" style="justify-content:flex-start; cursor:pointer;">
+          📤 Restaurar desde archivo JSON
+          <input type="file" id="importFileInput" accept=".json" style="display:none;">
+        </label>
+
+        <button id="resetDemoDataBtn" class="btn btn-danger" style="justify-content:flex-start; margin-top:12px;">
+          🔄 Restaurar datos de prueba iniciales
+        </button>
+      </div>
+
+      <div class="modal-footer">
+        <button type="button" class="btn btn-secondary close-modal-btn">Cerrar</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- CONTENEDOR DE NOTIFICACIONES TOAST -->
+  <div id="toastContainer" class="toast-container"></div>
+
+  <!-- ==========================================================================
+       LÓGICA JAVASCRIPT: ARQUITECTURA REACTIVA Y ESTADO CENTRALIZADO
+       ========================================================================== -->
+  <script>
+    /**
+     * BUZGENDA - SISTEMA DE GESTIÓN INTELIGENTE DEL HOGAR
+     * Arquitectura: Store Pattern con persistencia en localStorage,
+     * sincronización reactiva bidireccional entre módulos y sistema antiduplicados.
+     */
+
+    // --- 1. DATOS DE SEMILLA INICIALES (DEMO SEED) ---
+    const INITIAL_SEED = {
+      inventory: [
+        {
+          id: "inv-1",
+          name: "Leche entera",
+          normalizedName: "leche entera",
+          category: "Lácteos y Huevos",
+          quantity: 3,
+          unit: "l",
+          status: "Disponible",
+          minStock: 2,
+          location: "Nevera",
+          updatedAt: new Date().toISOString()
+        },
+        {
+          id: "inv-2",
+          name: "Café molido",
+          normalizedName: "cafe molido",
+          category: "Alimentación",
+          quantity: 1,
+          unit: "paq",
+          status: "Agotándose",
+          minStock: 1,
+          location: "Armario de la cocina",
+          updatedAt: new Date().toISOString()
+        },
+        {
+          id: "inv-3",
+          name: "Detergente lavadora",
+          normalizedName: "detergente lavadora",
+          category: "Limpieza",
+          quantity: 0,
+          unit: "ud",
+          status: "Agotado",
+          minStock: 1,
+          location: "Lavadero",
+          updatedAt: new Date().toISOString()
+        },
+        {
+          id: "inv-4",
+          name: "Tomates de ensalada",
+          normalizedName: "tomates de ensalada",
+          category: "Frutas y Verduras",
+          quantity: 6,
+          unit: "ud",
+          status: "Disponible",
+          minStock: 2,
+          location: "Nevera",
+          updatedAt: new Date().toISOString()
+        },
+        {
+          id: "inv-5",
+          name: "Papel higiénico",
+          normalizedName: "papel higienico",
+          category: "Higiene personal",
+          quantity: 4,
+          unit: "rollos",
+          status: "Disponible",
+          minStock: 2,
+          location: "Baño",
+          updatedAt: new Date().toISOString()
+        },
+        {
+          id: "inv-6",
+          name: "Bolsas de basura 50L",
+          normalizedName: "bolsas de basura 50l",
+          category: "Limpieza",
+          quantity: 0,
+          unit: "paq",
+          status: "Agotado",
+          minStock: 1,
+          location: "Armario de la cocina",
+          updatedAt: new Date().toISOString()
+        }
+      ],
+      shopping: [
+        {
+          id: "shop-1",
+          name: "Detergente lavadora",
+          normalizedName: "detergente lavadora",
+          quantity: 1,
+          unit: "ud",
+          category: "Limpieza",
+          targetLocation: "Lavadero",
+          completed: false,
+          addedAt: new Date().toISOString()
+        },
+        {
+          id: "shop-2",
+          name: "Aceite de Oliva Virgen Extra",
+          normalizedName: "aceite de oliva virgen extra",
+          quantity: 2,
+          unit: "l",
+          category: "Alimentación",
+          targetLocation: "Despensa",
+          completed: false,
+          addedAt: new Date().toISOString()
+        }
+      ],
+      tasks: [
+        {
+          id: "task-1",
+          title: "Limpiar y ordenar la nevera",
+          description: "Revisar fechas de caducidad antes de hacer la compra semanal.",
+          dueDate: getOffsetDateString(0), // Hoy
+          priority: "Alta",
+          completed: false
+        },
+        {
+          id: "task-2",
+          title: "Revisar filtros del aire acondicionado",
+          description: "Lavar con agua templada y secar antes de colocar.",
+          dueDate: getOffsetDateString(3),
+          priority: "Media",
+          completed: false
+        },
+        {
+          id: "task-3",
+          title: "Comprar recambio bombilla del trastero",
+          description: "Casquillo E27 luz cálida.",
+          dueDate: getOffsetDateString(-1), // Vencida
+          priority: "Baja",
+          completed: false
+        }
+      ]
+    };
+
+    // Helper para fechas relativas en datos iniciales
+    function getOffsetDateString(daysOffset) {
+      const d = new Date();
+      d.setDate(d.getDate() + daysOffset);
+      return d.toISOString().split("T")[0];
+    }
+
+    // Normalizador de texto para búsquedas y sistema antiduplicados (sin acentos, minúsculas)
+    function normalizeStr(text) {
+      if (!text) return "";
+      return text
+        .toString()
+        .toLowerCase()
+        .normalize("NFD")
+        .replace(/[\u0300-\u036f]/g, "")
+        .trim();
+    }
+
+    // --- 2. STORE: GESTOR DE ESTADO REACTIVO ---
+    class AppStore {
+      constructor() {
+        this.STORAGE_KEY = "buzgenda_app_state_v1";
+        this.THEME_KEY = "buzgenda_theme_mode";
+        this.state = this.loadState();
+        this.listeners = [];
+      }
+
+      loadState() {
+        try {
+          const raw = localStorage.getItem(this.STORAGE_KEY);
+          if (raw) {
+            return JSON.parse(raw);
+          }
+        } catch (e) {
+          console.error("Error al cargar localStorage, restaurando semilla:", e);
+        }
+        return JSON.parse(JSON.stringify(INITIAL_SEED));
+      }
+
+      saveState() {
+        try {
+          localStorage.setItem(this.STORAGE_KEY, JSON.stringify(this.state));
+        } catch (e) {
+          console.error("Error al persistir estado:", e);
+        }
+        this.notify();
+      }
+
+      subscribe(listener) {
+        this.listeners.push(listener);
+      }
+
+      notify() {
+        for (const listener of this.listeners) {
+          listener(this.state);
+        }
+      }
+
+      // --- MÉTODOS DE INVENTARIO ---
+      addInventoryItem(item) {
+        item.id = "inv-" + Date.now();
+        item.normalizedName = normalizeStr(item.name);
+        item.updatedAt = new Date().toISOString();
+        this.recalcItemStatus(item);
+        this.state.inventory.unshift(item);
+        this.saveState();
+        return item;
+      }
+
+      updateInventoryItem(updated) {
+        const idx = this.state.inventory.findIndex(i => i.id === updated.id);
+        if (idx !== -1) {
+          updated.normalizedName = normalizeStr(updated.name);
+          updated.updatedAt = new Date().toISOString();
+          this.recalcItemStatus(updated);
+          this.state.inventory[idx] = updated;
+          this.saveState();
+        }
+      }
+
+      adjustQuantity(id, delta) {
+        const item = this.state.inventory.find(i => i.id === id);
+        if (item) {
+          item.quantity = Math.max(0, (Number(item.quantity) || 0) + delta);
+          this.recalcItemStatus(item);
+          item.updatedAt = new Date().toISOString();
+          this.saveState();
+        }
+      }
+
+      deleteInventoryItem(id) {
+        this.state.inventory = this.state.inventory.filter(i => i.id !== id);
+        this.saveState();
+      }
+
+      recalcItemStatus(item) {
+        const qty = Number(item.quantity) || 0;
+        const min = Number(item.minStock) || 1;
+        if (qty === 0) {
+          item.status = "Agotado";
+        } else if (qty <= min) {
+          item.status = "Agotándose";
+        } else {
+          item.status = "Disponible";
+        }
+      }
+
+      // Buscar duplicado en inventario (Sistema antiduplicados)
+      findInventoryMatch(name) {
+        const norm = normalizeStr(name);
+        if (!norm || norm.length < 2) return null;
+        
+        // Coincidencia exacta
+        let match = this.state.inventory.find(i => i.normalizedName === norm);
+        if (match) return { item: match, exact: true };
+
+        // Coincidencia parcial
+        match = this.state.inventory.find(i => 
+          i.normalizedName.includes(norm) || norm.includes(i.normalizedName)
+        );
+        if (match) return { item: match, exact: false };
+
+        return null;
+      }
+
+      // --- MÉTODOS DE LISTA DE LA COMPRA ---
+      addShoppingItem(name, quantity = 1, unit = "ud", targetLocation = "Despensa", category = "Alimentación") {
+        const item = {
+          id: "shop-" + Date.now(),
+          name: name.trim(),
+          normalizedName: normalizeStr(name),
+          quantity: Math.max(1, Number(quantity) || 1),
+          unit: unit || "ud",
+          category: category || "Alimentación",
+          targetLocation: targetLocation || "Despensa",
+          completed: false,
+          addedAt: new Date().toISOString()
+        };
+        this.state.shopping.unshift(item);
+        this.saveState();
+        return item;
+      }
+
+      toggleShoppingItem(id) {
+        const item = this.state.shopping.find(s => s.id === id);
+        if (!item) return;
+
+        item.completed = !item.completed;
+
+        // Si se marca como COMPRADO -> INTERCONEXIÓN AUTOMÁTICA CON EL INVENTARIO
+        if (item.completed) {
+          this.syncBoughtItemToInventory(item);
+        }
+
+        this.saveState();
+      }
+
+      // LÓGICA DE INTERCONEXIÓN: Al comprar, suma stock al inventario
+      syncBoughtItemToInventory(shoppingItem) {
+        const match = this.findInventoryMatch(shoppingItem.name);
+        
+        if (match) {
+          // El producto ya existe en inventario: incrementamos stock
+          const invItem = match.item;
+          const addedQty = Number(shoppingItem.quantity) || 1;
+          invItem.quantity = (Number(invItem.quantity) || 0) + addedQty;
+          this.recalcItemStatus(invItem);
+          invItem.updatedAt = new Date().toISOString();
+
+          showToast(
+            `🎉 ¡Comprado! +${addedQty} ${invItem.unit} a "${invItem.name}" en ${invItem.location} (Total: ${invItem.quantity}).`
+          );
+        } else {
+          // El producto NO existía en inventario: se crea automáticamente en el inventario
+          const newInvItem = {
+            id: "inv-" + Date.now(),
+            name: shoppingItem.name,
+            normalizedName: normalizeStr(shoppingItem.name),
+            category: shoppingItem.category || "Alimentación",
+            quantity: Number(shoppingItem.quantity) || 1,
+            unit: shoppingItem.unit || "ud",
+            status: "Disponible",
+            minStock: 1,
+            location: shoppingItem.targetLocation || "Despensa",
+            updatedAt: new Date().toISOString()
+          };
+          this.state.inventory.unshift(newInvItem);
+          
+          showToast(
+            `📦 "${newInvItem.name}" añadido automáticamente al inventario en "${newInvItem.location}".`
+          );
+        }
+      }
+
+      deleteShoppingItem(id) {
+        this.state.shopping = this.state.shopping.filter(s => s.id !== id);
+        this.saveState();
+      }
+
+      clearCompletedShopping() {
+        const before = this.state.shopping.length;
+        this.state.shopping = this.state.shopping.filter(s => !s.completed);
+        const removed = before - this.state.shopping.length;
+        if (removed > 0) {
+          showToast(`Se han eliminado ${removed} productos completados.`);
+        }
+        this.saveState();
+      }
+
+      // Añadir automáticamente productos agotados o agotándose desde el inventario
+      importLowStockToShopping() {
+        const lowStockItems = this.state.inventory.filter(i => 
+          i.status === "Agotado" || i.status === "Agotándose" || i.quantity <= i.minStock
+        );
+
+        let addedCount = 0;
+        for (const item of lowStockItems) {
+          // Comprobar si ya está en la lista de la compra pendiente
+          const alreadyInList = this.state.shopping.some(s => 
+            !s.completed && s.normalizedName === item.normalizedName
+          );
+
+          if (!alreadyInList) {
+            const needQty = Math.max(1, (item.minStock * 2) - item.quantity);
+            this.state.shopping.unshift({
+              id: "shop-" + Date.now() + "-" + Math.random().toString(36).substring(2, 5),
+              name: item.name,
+              normalizedName: item.normalizedName,
+              quantity: needQty,
+              unit: item.unit,
+              category: item.category,
+              targetLocation: item.location,
+              completed: false,
+              addedAt: new Date().toISOString()
+            });
+            addedCount++;
+          }
+        }
+
+        if (addedCount > 0) {
+          this.saveState();
+          showToast(`✅ Se han añadido ${addedCount} productos que requerían reposición.`);
+        } else {
+          showToast(`ℹ️ Todos los productos agotados ya están en la lista de compra.`);
+        }
+      }
+
+      // --- MÉTODOS DE TAREAS / AGENDA ---
+      addTask(task) {
+        task.id = "task-" + Date.now();
+        task.completed = false;
+        this.state.tasks.unshift(task);
+        this.saveState();
+        return task;
+      }
+
+      updateTask(task) {
+        const idx = this.state.tasks.findIndex(t => t.id === task.id);
+        if (idx !== -1) {
+          this.state.tasks[idx] = { ...this.state.tasks[idx], ...task };
+          this.saveState();
+        }
+      }
+
+      toggleTask(id) {
+        const task = this.state.tasks.find(t => t.id === id);
+        if (task) {
+          task.completed = !task.completed;
+          this.saveState();
+        }
+      }
+
+      deleteTask(id) {
+        this.state.tasks = this.state.tasks.filter(t => t.id !== id);
+        this.saveState();
+      }
+
+      // Reseteo / Restauración
+      resetToSeed() {
+        this.state = JSON.parse(JSON.stringify(INITIAL_SEED));
+        this.saveState();
+      }
+    }
+
+    // Instancia Global del Store
+    const store = new AppStore();
+
+    // --- 3. GESTOR DE TEMA (LIGHT / DARK MODE) ---
+    function initTheme() {
+      const savedTheme = localStorage.getItem("buzgenda_theme") || "dark";
+      setTheme(savedTheme);
+
+      document.getElementById("themeToggleBtn").addEventListener("click", () => {
+        const current = document.documentElement.getAttribute("data-theme") || "dark";
+        const next = current === "dark" ? "light" : "dark";
+        setTheme(next);
+      });
+    }
+
+    function setTheme(theme) {
+      document.documentElement.setAttribute("data-theme", theme);
+      localStorage.setItem("buzgenda_theme", theme);
+      
+      const sun = document.getElementById("themeIconSun");
+      const moon = document.getElementById("themeIconMoon");
+      if (theme === "dark") {
+        sun.style.display = "block";
+        moon.style.display = "none";
+      } else {
+        sun.style.display = "none";
+        moon.style.display = "block";
+      }
+    }
+
+    // --- 4. TOAST NOTIFICATIONS ---
+    function showToast(message, duration = 3800) {
+      const container = document.getElementById("toastContainer");
+      const toast = document.createElement("div");
+      toast.className = "toast";
+      toast.innerHTML = `
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="color:var(--primary); flex-shrink:0;">
+          <polyline points="20 6 9 17 4 12"/>
+        </svg>
+        <span>${message}</span>
+      `;
+      container.appendChild(toast);
+
+      setTimeout(() => {
+        toast.classList.add("hide");
+        setTimeout(() => toast.remove(), 250);
+      }, duration);
+    }
+
+    // --- 5. NAVEGACIÓN ENTRE PESTAÑAS ---
+    let currentTab = "inventory";
+
+    function initNavigation() {
+      const tabButtons = document.querySelectorAll("[data-tab]");
+      
+      tabButtons.forEach(btn => {
+        btn.addEventListener("click", () => {
+          const tab = btn.getAttribute("data-tab");
+          switchTab(tab);
+        });
+      });
+    }
+
+    function switchTab(tab) {
+      currentTab = tab;
+
+      // Actualizar botones de navegación desktop y mobile
+      document.querySelectorAll("[data-tab]").forEach(btn => {
+        if (btn.getAttribute("data-tab") === tab) {
+          btn.classList.add("active");
+        } else {
+          btn.classList.remove("active");
+        }
+      });
+
+      // Mostrar la vista seleccionada
+      document.querySelectorAll(".view-section").forEach(sec => {
+        sec.classList.remove("active");
+      });
+
+      if (tab === "inventory") document.getElementById("viewInventory").classList.add("active");
+      if (tab === "shopping") document.getElementById("viewShopping").classList.add("active");
+      if (tab === "agenda") document.getElementById("viewAgenda").classList.add("active");
+
+      // Scroll top suave
+      window.scrollTo({ top: 0, behavior: "smooth" });
+    }
+
+    // --- 6. RENDERIZADO: INVENTARIO DEL HOGAR ---
+    let inventoryFilterStatus = "all";
+    let inventoryFilterLocation = "";
+    let inventoryFilterCategory = "";
+    let inventorySearchQuery = "";
+
+    function renderInventory() {
+      const container = document.getElementById("inventoryContainer");
+      const items = store.state.inventory;
+
+      // Calcular estadísticas
+      let disponibles = 0;
+      let agotandose = 0;
+      let agotados = 0;
+
+      items.forEach(i => {
+        if (i.status === "Disponible") disponibles++;
+        else if (i.status === "Agotándose") agotandose++;
+        else if (i.status === "Agotado") agotados++;
+      });
+
+      document.getElementById("statDisponible").textContent = disponibles;
+      document.getElementById("statAgotandose").textContent = agotandose;
+      document.getElementById("statAgotado").textContent = agotados;
+
+      // Actualizar Badges
+      const alertCount = agotandose + agotados;
+      updateBadges("inventory", alertCount);
+
+      // Filtrar items
+      const filtered = items.filter(item => {
+        // Filtro estado
+        if (inventoryFilterStatus !== "all" && item.status !== inventoryFilterStatus) return false;
+        // Filtro ubicación
+        if (inventoryFilterLocation && item.location !== inventoryFilterLocation) return false;
+        // Filtro categoría
+        if (inventoryFilterCategory && item.category !== inventoryFilterCategory) return false;
+        // Buscador
+        if (inventorySearchQuery) {
+          const q = normalizeStr(inventorySearchQuery);
+          const inName = item.normalizedName.includes(q);
+          const inLoc = normalizeStr(item.location).includes(q);
+          const inCat = normalizeStr(item.category).includes(q);
+          if (!inName && !inLoc && !inCat) return false;
+        }
+        return true;
+      });
+
+      if (filtered.length === 0) {
+        container.innerHTML = `
+          <div class="card empty-state" style="grid-column: 1 / -1;">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
+              <path d="M21 8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16Z"/>
+              <path d="m3.3 7 8.7 5 8.7-5"/><path d="M12 22V12"/>
+            </svg>
+            <h4>No se encontraron productos</h4>
+            <p>Intenta cambiar los filtros de búsqueda o registra un nuevo producto.</p>
+            <button class="btn btn-primary" onclick="openInventoryModal()">+ Añadir Producto</button>
+          </div>
+        `;
+        return;
+      }
+
+      container.innerHTML = filtered.map(item => {
+        const statusClass = item.status.toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "");
+        return `
+          <div class="inventory-item-card" data-id="${item.id}">
+            <div class="item-header">
+              <div class="item-title-group">
+                <h3>${escapeHtml(item.name)}</h3>
+                <div class="item-tags">
+                  <span class="tag">
+                    📍 ${escapeHtml(item.location)}
+                  </span>
+                  <span class="tag">
+                    🏷️ ${escapeHtml(item.category)}
+                  </span>
+                </div>
+              </div>
+              <span class="status-badge ${statusClass}">
+                ${item.status === 'Disponible' ? '🟢' : item.status === 'Agotándose' ? '🟡' : '🔴'} ${item.status}
+              </span>
+            </div>
+
+            <div class="item-body">
+              <!-- Stepper rápido (+ / -) -->
+              <div class="quantity-stepper">
+                <button class="stepper-btn" onclick="store.adjustQuantity('${item.id}', -1)" title="Restar 1">-</button>
+                <div class="quantity-val">${item.quantity} <span style="font-size:0.75rem; font-weight:normal; color:var(--text-muted);">${escapeHtml(item.unit)}</span></div>
+                <button class="stepper-btn" onclick="store.adjustQuantity('${item.id}', 1)" title="Sumar 1">+</button>
+              </div>
+
+              <div class="item-actions">
+                <!-- Botón rápido: Añadir a lista de la compra si escasea -->
+                <button class="btn-icon-sm" onclick="quickAddToShoppingFromInventory('${item.id}')" title="Añadir a la lista de compra">
+                  🛒
+                </button>
+                <!-- Editar -->
+                <button class="btn-icon-sm" onclick="editInventoryItem('${item.id}')" title="Editar">
+                  ✏️
+                </button>
+                <!-- Eliminar -->
+                <button class="btn-icon-sm" onclick="confirmDeleteInventory('${item.id}')" title="Eliminar">
+                  🗑️
+                </button>
+              </div>
+            </div>
+          </div>
+        `;
+      }).join("");
+    }
+
+    // --- 7. RENDERIZADO: LISTA DE LA COMPRA (SISTEMA ANTIDUPLICADOS) ---
+    function renderShopping() {
+      const container = document.getElementById("shoppingContainer");
+      const items = store.state.shopping;
+
+      const pendingCount = items.filter(i => !i.completed).length;
+      document.getElementById("shoppingSummaryCount").textContent = `${pendingCount} pendientes`;
+      updateBadges("shopping", pendingCount);
+
+      if (items.length === 0) {
+        container.innerHTML = `
+          <div class="card empty-state">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
+              <circle cx="8" cy="21" r="1"/><circle cx="19" cy="21" r="1"/><path d="M2.05 2.05h2l2.66 12.42a2 2 0 0 0 2 1.58h9.78a2 2 0 0 0 1.95-1.57l1.65-7.43H5.12"/>
+            </svg>
+            <h4>Tu lista de la compra está vacía</h4>
+            <p>Escribe el nombre de un producto arriba para añadirlo o importa los agotados del inventario.</p>
+          </div>
+        `;
+        return;
+      }
+
+      container.innerHTML = items.map(item => {
+        // Comprobar si el producto está enlazado a inventario
+        const invMatch = store.findInventoryMatch(item.name);
+        const invInfo = invMatch ? `📍 Destino: ${invMatch.item.location}` : `📍 Destino: ${item.targetLocation || 'Despensa'}`;
+
+        return `
+          <div class="shopping-item-card ${item.completed ? 'completed' : ''}" data-id="${item.id}">
+            <div class="shopping-item-left">
+              <div class="custom-checkbox ${item.completed ? 'checked' : ''}" onclick="store.toggleShoppingItem('${item.id}')" title="${item.completed ? 'Marcar pendiente' : 'Marcar como comprado'}">
+                ${item.completed ? '✓' : ''}
+              </div>
+              <div class="shopping-item-text">
+                <h4>${escapeHtml(item.name)}</h4>
+                <div class="meta">
+                  <span><strong>${item.quantity} ${escapeHtml(item.unit || 'ud')}</strong></span>
+                  <span>•</span>
+                  <span>${invInfo}</span>
+                  ${invMatch ? `<span class="sync-pill" title="Sincronizado con inventario">🔗 Auto-Stock</span>` : ''}
+                </div>
+              </div>
+            </div>
+
+            <button class="btn-icon-sm" onclick="store.deleteShoppingItem('${item.id}')" title="Eliminar de la lista">
+              ✕
+            </button>
+          </div>
+        `;
+      }).join("");
+    }
+
+    // --- 8. LÓGICA DEL SISTEMA ANTIDUPLICADOS EN TIEMPO REAL ---
+    let pendingDuplicateItem = null;
+
+    function initAntiduplicateSystem() {
+      const input = document.getElementById("quickShoppingName");
+      const alertBox = document.getElementById("antidupAlert");
+      const alertText = document.getElementById("antidupAlertText");
+      const addAnywayBtn = document.getElementById("antidupAddAnywayBtn");
+      const goToItemBtn = document.getElementById("antidupGoToItemBtn");
+      const form = document.getElementById("quickShoppingForm");
+
+      // Detección en tiempo real mientras el usuario teclea
+      input.addEventListener("input", (e) => {
+        checkDuplicate(e.target.value);
+      });
+
+      function checkDuplicate(val) {
+        const query = val.trim();
+        if (query.length < 2) {
+          hideAlert();
+          return;
+        }
+
+        const match = store.findInventoryMatch(query);
+        if (match) {
+          pendingDuplicateItem = match.item;
+          showAlert(match.item);
+        } else {
+          hideAlert();
+        }
+      }
+
+      function showAlert(item) {
+        alertText.innerHTML = `
+          ¡Atención! Ya tienes <strong>${item.quantity} ${item.unit}</strong> de este producto en <strong>"${escapeHtml(item.location)}"</strong>. 
+          <br>Estado actual en inventario: <span class="status-badge ${item.status.toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "")}">${item.status}</span>
+        `;
+        alertBox.classList.add("visible");
+      }
+
+      function hideAlert() {
+        pendingDuplicateItem = null;
+        alertBox.classList.remove("visible");
+      }
+
+      // Añadir de todos modos
+      addAnywayBtn.addEventListener("click", () => {
+        submitShopping(true);
+      });
+
+      // Ver en inventario
+      goToItemBtn.addEventListener("click", () => {
+        if (pendingDuplicateItem) {
+          switchTab("inventory");
+          inventorySearchQuery = pendingDuplicateItem.name;
+          document.getElementById("inventorySearchInput").value = pendingDuplicateItem.name;
+          renderInventory();
+        }
+      });
+
+      // Submit por formulario
+      form.addEventListener("submit", () => {
+        submitShopping(false);
+      });
+
+      function submitShopping(force = false) {
+        const name = input.value.trim();
+        const qty = Number(document.getElementById("quickShoppingQty").value) || 1;
+        if (!name) return;
+
+        // Si detectamos duplicado y no es forzado, avisamos al usuario
+        if (!force && pendingDuplicateItem) {
+          // El usuario ya vio el aviso, pero si pulsa enter lo añadimos avisando
+          showToast(`⚠️ "${name}" añadido a la compra a pesar de existir en ${pendingDuplicateItem.location}.`);
+        } else {
+          showToast(`🛒 "${name}" añadido a la lista.`);
+        }
+
+        store.addShoppingItem(name, qty);
+        input.value = "";
+        document.getElementById("quickShoppingQty").value = "1";
+        hideAlert();
+      }
+    }
+
+    // --- 9. RENDERIZADO: AGENDA / TAREAS ---
+    let taskFilter = "all";
+
+    function renderAgenda() {
+      const container = document.getElementById("agendaContainer");
+      const tasks = store.state.tasks;
+
+      const todayStr = new Date().toISOString().split("T")[0];
+      const pendingCount = tasks.filter(t => !t.completed).length;
+      updateBadges("agenda", pendingCount);
+
+      const filtered = tasks.filter(task => {
+        if (taskFilter === "pending") return !task.completed;
+        if (taskFilter === "completed") return task.completed;
+        if (taskFilter === "today") return !task.completed && task.dueDate === todayStr;
+        if (taskFilter === "overdue") return !task.completed && task.dueDate < todayStr;
+        return true;
+      });
+
+      if (filtered.length === 0) {
+        container.innerHTML = `
+          <div class="card empty-state">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
+              <rect width="18" height="18" x="3" y="4" rx="2" ry="2"/><line x1="16" x2="16" y1="2" y2="6"/><line x1="8" x2="8" y1="2" y2="6"/><line x1="3" x2="21" y1="10" y2="10"/><path d="m9 16 2 2 4-4"/>
+            </svg>
+            <h4>No hay tareas en esta sección</h4>
+            <p>Mantén tu hogar organizado creando tareas de mantenimiento y compras.</p>
+            <button class="btn btn-primary" onclick="openTaskModal()">+ Nueva Tarea</button>
+          </div>
+        `;
+        return;
+      }
+
+      container.innerHTML = filtered.map(task => {
+        const isOverdue = !task.completed && task.dueDate < todayStr;
+        const isToday = !task.completed && task.dueDate === todayStr;
+
+        let dateClass = "";
+        let dateLabel = task.dueDate;
+
+        if (isOverdue) {
+          dateClass = "overdue";
+          dateLabel = `⚠️ Vencida (${task.dueDate})`;
+        } else if (isToday) {
+          dateClass = "today";
+          dateLabel = `📅 Hoy (${task.dueDate})`;
+        } else {
+          dateLabel = `🗓️ ${task.dueDate}`;
+        }
+
+        const prioClass = (task.priority || "media").toLowerCase();
+
+        return `
+          <div class="task-item-card ${task.completed ? 'completed' : ''}" data-id="${task.id}">
+            <div class="custom-checkbox ${task.completed ? 'checked' : ''}" onclick="store.toggleTask('${task.id}')" title="${task.completed ? 'Desmarcar' : 'Completar tarea'}">
+              ${task.completed ? '✓' : ''}
+            </div>
+
+            <div class="task-item-content">
+              <h4>${escapeHtml(task.title)}</h4>
+              ${task.description ? `<p>${escapeHtml(task.description)}</p>` : ''}
+              <div class="task-meta-row">
+                <span class="due-date-tag ${dateClass}">${dateLabel}</span>
+                <span class="priority-badge ${prioClass}">${task.priority || 'Media'}</span>
+              </div>
+            </div>
+
+            <div class="item-actions">
+              <button class="btn-icon-sm" onclick="editTask('${task.id}')" title="Editar tarea">✏️</button>
+              <button class="btn-icon-sm" onclick="store.deleteTask('${task.id}')" title="Eliminar tarea">🗑️</button>
+            </div>
+          </div>
+        `;
+      }).join("");
+    }
+
+    // Actualizar badges en desktop y mobile
+    function updateBadges(module, count) {
+      if (module === "inventory") {
+        document.getElementById("badgeInventoryDesk").textContent = count;
+        const m = document.getElementById("badgeInventoryMobile");
+        m.textContent = count;
+        m.style.display = count > 0 ? "flex" : "none";
+      } else if (module === "shopping") {
+        document.getElementById("badgeShoppingDesk").textContent = count;
+        const m = document.getElementById("badgeShoppingMobile");
+        m.textContent = count;
+        m.style.display = count > 0 ? "flex" : "none";
+      } else if (module === "agenda") {
+        document.getElementById("badgeAgendaDesk").textContent = count;
+        const m = document.getElementById("badgeAgendaMobile");
+        m.textContent = count;
+        m.style.display = count > 0 ? "flex" : "none";
+      }
+    }
+
+    // --- 10. MODALES & EVENTOS DE FORMULARIOS ---
+    function initModals() {
+      // Cerrar modales con botones de cerrar o backdrop
+      document.querySelectorAll(".close-modal-btn").forEach(btn => {
+        btn.addEventListener("click", closeModal);
+      });
+
+      document.querySelectorAll(".modal-overlay").forEach(overlay => {
+        overlay.addEventListener("click", (e) => {
+          if (e.target === overlay) closeModal();
+        });
+      });
+
+      // Tecla Escape cierra modal
+      window.addEventListener("keydown", (e) => {
+        if (e.key === "Escape") closeModal();
+      });
+
+      // FAB Principal añade según la pestaña activa
+      document.getElementById("mainFabBtn").addEventListener("click", () => {
+        if (currentTab === "inventory") openInventoryModal();
+        else if (currentTab === "shopping") document.getElementById("quickShoppingName").focus();
+        else if (currentTab === "agenda") openTaskModal();
+      });
+
+      // Formulario Inventario
+      document.getElementById("formInventory").addEventListener("submit", (e) => {
+        e.preventDefault();
+        const id = document.getElementById("invFormId").value;
+        const itemData = {
+          name: document.getElementById("invFormName").value.trim(),
+          category: document.getElementById("invFormCategory").value,
+          location: document.getElementById("invFormLocation").value,
+          quantity: Number(document.getElementById("invFormQuantity").value) || 0,
+          unit: document.getElementById("invFormUnit").value.trim() || "ud",
+          status: document.getElementById("invFormStatus").value,
+          minStock: Number(document.getElementById("invFormMinStock").value) || 1
+        };
+
+        if (id) {
+          itemData.id = id;
+          store.updateInventoryItem(itemData);
+          showToast(`✓ Producto "${itemData.name}" actualizado.`);
+        } else {
+          store.addInventoryItem(itemData);
+          showToast(`✓ Producto "${itemData.name}" añadido al inventario.`);
+        }
+        closeModal();
+      });
+
+      // Formulario Tareas
+      document.getElementById("formTask").addEventListener("submit", (e) => {
+        e.preventDefault();
+        const id = document.getElementById("taskFormId").value;
+        const taskData = {
+          title: document.getElementById("taskFormTitle").value.trim(),
+          description: document.getElementById("taskFormDesc").value.trim(),
+          dueDate: document.getElementById("taskFormDueDate").value,
+          priority: document.getElementById("taskFormPriority").value
+        };
+
+        if (id) {
+          taskData.id = id;
+          store.updateTask(taskData);
+          showToast(`✓ Tarea "${taskData.title}" actualizada.`);
+        } else {
+          store.addTask(taskData);
+          showToast(`✓ Nueva tarea registrada.`);
+        }
+        closeModal();
+      });
+
+      // Filtros de inventario
+      document.getElementById("inventorySearchInput").addEventListener("input", (e) => {
+        inventorySearchQuery = e.target.value;
+        renderInventory();
+      });
+
+      document.querySelectorAll("#inventoryStatusChips .filter-chip").forEach(chip => {
+        chip.addEventListener("click", () => {
+          document.querySelectorAll("#inventoryStatusChips .filter-chip").forEach(c => c.classList.remove("active"));
+          chip.classList.add("active");
+          inventoryFilterStatus = chip.getAttribute("data-filter");
+          renderInventory();
+        });
+      });
+
+      document.getElementById("filterLocationSelect").addEventListener("change", (e) => {
+        inventoryFilterLocation = e.target.value;
+        renderInventory();
+      });
+
+      document.getElementById("filterCategorySelect").addEventListener("change", (e) => {
+        inventoryFilterCategory = e.target.value;
+        renderInventory();
+      });
+
+      // Filtros de tareas
+      document.querySelectorAll("#taskFilterChips .filter-chip").forEach(chip => {
+        chip.addEventListener("click", () => {
+          document.querySelectorAll("#taskFilterChips .filter-chip").forEach(c => c.classList.remove("active"));
+          chip.classList.add("active");
+          taskFilter = chip.getAttribute("data-task-filter");
+          renderAgenda();
+        });
+      });
+
+      // Acciones de compra
+      document.getElementById("importLowStockBtn").addEventListener("click", () => {
+        store.importLowStockToShopping();
+      });
+
+      document.getElementById("clearCompletedShoppingBtn").addEventListener("click", () => {
+        store.clearCompletedShopping();
+      });
+
+      // Modal de Backup y Exportación
+      document.getElementById("backupBtn").addEventListener("click", () => {
+        document.getElementById("modalBackup").classList.add("active");
+      });
+
+      document.getElementById("exportDataBtn").addEventListener("click", () => {
+        const json = JSON.stringify(store.state, null, 2);
+        const blob = new Blob([json], { type: "application/json" });
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement("a");
+        a.href = url;
+        a.download = `buzgenda-backup-${new Date().toISOString().split("T")[0]}.json`;
+        a.click();
+        URL.revokeObjectURL(url);
+        showToast("Copia de seguridad descargada exitosamente.");
+      });
+
+      document.getElementById("importFileInput").addEventListener("change", (e) => {
+        const file = e.target.files[0];
+        if (!file) return;
+        const reader = new FileReader();
+        reader.onload = (event) => {
+          try {
+            const data = JSON.parse(event.target.result);
+            if (data.inventory && data.shopping && data.tasks) {
+              store.state = data;
+              store.saveState();
+              showToast("Datos restaurados correctamente.");
+              closeModal();
+            } else {
+              alert("El archivo no tiene el formato válido de Buzgenda.");
+            }
+          } catch (err) {
+            alert("Error al leer el archivo JSON.");
+          }
+        };
+        reader.readAsText(file);
+      });
+
+      document.getElementById("resetDemoDataBtn").addEventListener("click", () => {
+        if (confirm("¿Estás seguro de restablecer los datos de demostración? Se sobreescribirán los datos actuales.")) {
+          store.resetToSeed();
+          showToast("Datos iniciales restaurados.");
+          closeModal();
+        }
+      });
+    }
+
+    function closeModal() {
+      document.querySelectorAll(".modal-overlay").forEach(m => m.classList.remove("active"));
+    }
+
+    // Funciones globales para botones dinámicos
+    window.openInventoryModal = function() {
+      document.getElementById("formInventory").reset();
+      document.getElementById("invFormId").value = "";
+      document.getElementById("modalInventoryTitle").textContent = "Nuevo Producto en Inventario";
+      document.getElementById("modalInventory").classList.add("active");
+      setTimeout(() => document.getElementById("invFormName").focus(), 150);
+    };
+
+    window.editInventoryItem = function(id) {
+      const item = store.state.inventory.find(i => i.id === id);
+      if (!item) return;
+
+      document.getElementById("invFormId").value = item.id;
+      document.getElementById("invFormName").value = item.name;
+      document.getElementById("invFormCategory").value = item.category;
+      document.getElementById("invFormLocation").value = item.location;
+      document.getElementById("invFormQuantity").value = item.quantity;
+      document.getElementById("invFormUnit").value = item.unit;
+      document.getElementById("invFormStatus").value = item.status;
+      document.getElementById("invFormMinStock").value = item.minStock || 1;
+
+      document.getElementById("modalInventoryTitle").textContent = "Editar Producto";
+      document.getElementById("modalInventory").classList.add("active");
+    };
+
+    window.confirmDeleteInventory = function(id) {
+      const item = store.state.inventory.find(i => i.id === id);
+      if (!item) return;
+      if (confirm(`¿Eliminar "${item.name}" del inventario?`)) {
+        store.deleteInventoryItem(id);
+        showToast(`"${item.name}" eliminado del inventario.`);
+      }
+    };
+
+    window.quickAddToShoppingFromInventory = function(id) {
+      const item = store.state.inventory.find(i => i.id === id);
+      if (!item) return;
+      store.addShoppingItem(item.name, 1, item.unit, item.location, item.category);
+      showToast(`🛒 "${item.name}" añadido a la lista de la compra.`);
+    };
+
+    window.openTaskModal = function() {
+      document.getElementById("formTask").reset();
+      document.getElementById("taskFormId").value = "";
+      document.getElementById("taskFormDueDate").value = new Date().toISOString().split("T")[0];
+      document.getElementById("modalTaskTitle").textContent = "Nueva Tarea del Hogar";
+      document.getElementById("modalTask").classList.add("active");
+      setTimeout(() => document.getElementById("taskFormTitle").focus(), 150);
+    };
+
+    window.editTask = function(id) {
+      const task = store.state.tasks.find(t => t.id === id);
+      if (!task) return;
+
+      document.getElementById("taskFormId").value = task.id;
+      document.getElementById("taskFormTitle").value = task.title;
+      document.getElementById("taskFormDesc").value = task.description || "";
+      document.getElementById("taskFormDueDate").value = task.dueDate;
+      document.getElementById("taskFormPriority").value = task.priority || "Media";
+
+      document.getElementById("modalTaskTitle").textContent = "Editar Tarea";
+      document.getElementById("modalTask").classList.add("active");
+    };
+
+    function escapeHtml(text) {
+      if (!text) return "";
+      const div = document.createElement("div");
+      div.textContent = text;
+      return div.innerHTML;
+    }
+
+    // --- 11. REGISTRO DE SERVICE WORKER (PWA OFFLINE) ---
+    if ("serviceWorker" in navigator) {
+      window.addEventListener("load", () => {
+        navigator.serviceWorker.register("./service-worker.js")
+          .then(() => console.log("Service Worker de Buzgenda activo para uso offline."))
+          .catch(err => console.log("SW no registrado (normal en vista previa local):", err));
+      });
+    }
+
+    // --- 12. INICIALIZACIÓN GLOBAL ---
+    document.addEventListener("DOMContentLoaded", () => {
+      initTheme();
+      initNavigation();
+      initModals();
+      initAntiduplicateSystem();
+
+      // Suscribir re-renderizados a cambios de estado en el Store
+      store.subscribe(() => {
+        renderInventory();
+        renderShopping();
+        renderAgenda();
+      });
+
+      // Primer render
+      renderInventory();
+      renderShopping();
+      renderAgenda();
+    });
+  </script>
+</body>
+</html>
