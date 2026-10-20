@@ -2,45 +2,7 @@
 
 > **PWA (Progressive Web App) Mobile-First** lista para desplegar en **GitHub Pages** e instalar como aplicación nativa en tu teléfono móvil (iOS / Android), exactamente con la misma arquitectura que **BuzFinance**.
 
----
 
-## 📱 Cómo Subirlo a GitHub y Usarlo en tu Móvil (Paso a Paso)
-
-### Paso 1: Crear el repositorio en GitHub
-1. Entra en tu cuenta de [GitHub](https://github.com/) y pulsa sobre el botón verde **«New»** (Nuevo repositorio).
-2. Asigna un nombre al repositorio, por ejemplo: `Buzgenda` o `buzgenda-pwa`.
-3. Selecciona **Public** (Público) para que GitHub Pages sea gratuito.
-4. **No** es necesario marcar "Add a README" ni .gitignore. Pulsa **«Create repository»**.
-
----
-
-### Paso 2: Subir los archivos del proyecto
-Puedes subir los archivos directamente desde el navegador web sin necesidad de tener Git instalado:
-
-1. En la página del repositorio recién creado, haz clic en el enlace azul: **«uploading an existing file»** (o ve a *Add file* > *Upload files*).
-2. Selecciona y arrastra **todos los archivos** de tu carpeta `c:\Users\Buceta\Downloads\Buzgenda`:
-   - `index.html`
-   - `manifest.json`
-   - `service-worker.js`
-   - `icon-192.png`
-   - `icon-512.png`
-   - `icon-512-maskable.png`
-   - `README.md`
-3. En la parte inferior, escribe un mensaje de commit (por ejemplo: `Versión inicial Buzgenda PWA`) y pulsa **«Commit changes»**.
-
----
-
-### Paso 3: Activar GitHub Pages (Hosting Web Gratuito)
-1. En tu repositorio de GitHub, entra en la pestaña **«Settings»** (Configuración) en la barra superior.
-2. En el menú lateral izquierdo, haz clic en **«Pages»**.
-3. En el apartado **Build and deployment**:
-   - **Source**: Selecciona `Deploy from a branch`.
-   - **Branch**: Elige `main` (o `master`) y la carpeta `/(root)`.
-4. Pulsa el botón **«Save»** (Guardar).
-5. Espera unos 60 segundos y refresca la página. Aparecerá un aviso verde con tu enlace público:
-   ```text
-   Your site is live at https://TU-USUARIO.github.io/Buzgenda/
-   ```
 
 ---
 
