@@ -587,9 +587,15 @@
     /* Tarjetas de Estadísticas / Resumen Superior */
     .stats-grid {
       display: grid;
-      grid-template-columns: repeat(3, 1fr);
+      grid-template-columns: repeat(2, 1fr);
       gap: 10px;
       margin-bottom: 20px;
+    }
+
+    @media (min-width: 640px) {
+      .stats-grid {
+        grid-template-columns: repeat(4, 1fr);
+      }
     }
 
     .stat-card {
@@ -620,6 +626,73 @@
     .stat-card.disponible .num { color: var(--primary); }
     .stat-card.agotandose .num { color: var(--warning); }
     .stat-card.agotado .num { color: var(--danger); }
+    .stat-card.caducidad .num { color: #f59e0b; }
+
+    /* Pastillas de Caducidad */
+    .expiry-tag {
+      display: inline-flex;
+      align-items: center;
+      gap: 4px;
+      padding: 2px 7px;
+      border-radius: var(--radius-sm);
+      font-size: 0.72rem;
+      font-weight: 600;
+    }
+    .expiry-tag.good {
+      background: var(--bg-surface);
+      color: var(--text-muted);
+      border: 1px solid var(--border-subtle);
+    }
+    .expiry-tag.soon {
+      background: var(--warning-soft);
+      color: var(--warning);
+      border: 1px solid var(--warning-border);
+    }
+    .expiry-tag.expired {
+      background: var(--danger-soft);
+      color: var(--danger);
+      border: 1px solid rgba(239, 68, 68, 0.4);
+    }
+
+    /* Botón Deshacer en Toast */
+    .toast-undo-btn {
+      background: rgba(255, 255, 255, 0.2);
+      color: #fff;
+      border: 1px solid rgba(255, 255, 255, 0.35);
+      border-radius: var(--radius-sm);
+      padding: 3px 8px;
+      font-size: 0.75rem;
+      font-weight: 700;
+      cursor: pointer;
+      margin-left: auto;
+      transition: var(--transition-smooth);
+    }
+    .toast-undo-btn:hover {
+      background: var(--primary);
+      border-color: var(--primary);
+    }
+
+    /* Modal / Panel de Test Suite Superpowers */
+    .test-suite-panel {
+      background: var(--bg-input);
+      border: 1px solid var(--border-subtle);
+      border-radius: var(--radius-md);
+      padding: 12px;
+      margin-top: 14px;
+      max-height: 220px;
+      overflow-y: auto;
+      font-family: monospace;
+      font-size: 0.78rem;
+    }
+    .test-item-row {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 5px 0;
+      border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+    }
+    .test-item-pass { color: #10b981; font-weight: bold; }
+    .test-item-fail { color: #ef4444; font-weight: bold; }
 
     /* ==========================================================================
        LISTA DE PRODUCTOS DEL INVENTARIO
@@ -1331,6 +1404,10 @@
           <span class="num" id="statAgotado">0</span>
           <span class="label">Agotados</span>
         </div>
+        <div class="stat-card caducidad">
+          <span class="num" id="statCaducidad">0</span>
+          <span class="label">Por Caducar</span>
+        </div>
       </div>
 
       <!-- Barra de Búsqueda y Filtros -->
@@ -1348,6 +1425,7 @@
           <button class="filter-chip" data-filter="Disponible">🟢 Disponibles</button>
           <button class="filter-chip" data-filter="Agotándose">🟡 Agotándose</button>
           <button class="filter-chip" data-filter="Agotado">🔴 Agotados</button>
+          <button class="filter-chip" data-filter="caducidad">⏱️ Caducan Pronto / Caducados</button>
         </div>
 
         <!-- Selectores de Ubicación y Categoría -->
@@ -1595,6 +1673,11 @@
           </div>
         </div>
 
+        <div class="form-group">
+          <label for="invFormExpiry">Fecha de Caducidad / Consumo Preferente (Opcional)</label>
+          <input type="date" id="invFormExpiry" class="form-control" title="Introduce la fecha para recibir avisos de caducidad">
+        </div>
+
         <div class="modal-footer">
           <button type="button" class="btn btn-secondary close-modal-btn">Cancelar</button>
           <button type="submit" class="btn btn-primary">Guardar Producto</button>
@@ -1670,7 +1753,26 @@
           <input type="file" id="importFileInput" accept=".json" style="display:none;">
         </label>
 
-        <button id="resetDemoDataBtn" class="btn btn-danger" style="justify-content:flex-start; margin-top:12px;">
+        <hr style="border:none; border-top:1px solid var(--border-subtle); margin:4px 0;">
+
+        <div style="font-size:0.85rem; font-weight:700; color:var(--text-main);">Personalización del Hogar:</div>
+        <div class="form-grid-2">
+          <button type="button" id="addNewLocationBtn" class="btn btn-secondary" style="font-size:0.8rem; padding:8px;">
+            📍 + Nueva Ubicación
+          </button>
+          <button type="button" id="addNewCategoryBtn" class="btn btn-secondary" style="font-size:0.8rem; padding:8px;">
+            🏷️ + Nueva Categoría
+          </button>
+        </div>
+
+        <hr style="border:none; border-top:1px solid var(--border-subtle); margin:4px 0;">
+
+        <button id="runTestsBtn" class="btn btn-primary" style="justify-content:flex-start; background:linear-gradient(135deg, #10b981 0%, #059669 100%);">
+          🧪 Diagnóstico & Tests de Verificación (Superpowers TDD)
+        </button>
+        <div id="testSuitePanel" class="test-suite-panel" style="display:none;"></div>
+
+        <button id="resetDemoDataBtn" class="btn btn-danger" style="justify-content:flex-start; margin-top:8px;">
           🔄 Restaurar datos de prueba iniciales
         </button>
       </div>
@@ -1696,6 +1798,28 @@
 
     // --- 1. DATOS DE SEMILLA INICIALES (DEMO SEED) ---
     const INITIAL_SEED = {
+      locations: [
+        "Nevera",
+        "Congelador",
+        "Despensa",
+        "Armario de la cocina",
+        "Baño",
+        "Trastero",
+        "Lavadero",
+        "Otro"
+      ],
+      categories: [
+        "Alimentación",
+        "Lácteos y Huevos",
+        "Frutas y Verduras",
+        "Bebidas",
+        "Congelados",
+        "Limpieza",
+        "Higiene personal",
+        "Farmacia",
+        "Hogar y Bricolaje",
+        "Otros"
+      ],
       inventory: [
         {
           id: "inv-1",
@@ -1707,6 +1831,7 @@
           status: "Disponible",
           minStock: 2,
           location: "Nevera",
+          expiryDate: getOffsetDateString(2), // Caduca en 2 días
           updatedAt: new Date().toISOString()
         },
         {
@@ -1719,6 +1844,7 @@
           status: "Agotándose",
           minStock: 1,
           location: "Armario de la cocina",
+          expiryDate: getOffsetDateString(45),
           updatedAt: new Date().toISOString()
         },
         {
@@ -1731,6 +1857,7 @@
           status: "Agotado",
           minStock: 1,
           location: "Lavadero",
+          expiryDate: null,
           updatedAt: new Date().toISOString()
         },
         {
@@ -1743,6 +1870,7 @@
           status: "Disponible",
           minStock: 2,
           location: "Nevera",
+          expiryDate: getOffsetDateString(5),
           updatedAt: new Date().toISOString()
         },
         {
@@ -1755,6 +1883,7 @@
           status: "Disponible",
           minStock: 2,
           location: "Baño",
+          expiryDate: null,
           updatedAt: new Date().toISOString()
         },
         {
@@ -1767,6 +1896,20 @@
           status: "Agotado",
           minStock: 1,
           location: "Armario de la cocina",
+          expiryDate: null,
+          updatedAt: new Date().toISOString()
+        },
+        {
+          id: "inv-7",
+          name: "Yogures naturales",
+          normalizedName: "yogures naturales",
+          category: "Lácteos y Huevos",
+          quantity: 2,
+          unit: "ud",
+          status: "Disponible",
+          minStock: 1,
+          location: "Nevera",
+          expiryDate: getOffsetDateString(-1), // Caducado ayer
           updatedAt: new Date().toISOString()
         }
       ],
@@ -1829,7 +1972,7 @@
       return d.toISOString().split("T")[0];
     }
 
-    // Normalizador de texto para búsquedas y sistema antiduplicados (sin acentos, minúsculas)
+    // Normalizador de texto para búsquedas (sin acentos, minúsculas, espacios)
     function normalizeStr(text) {
       if (!text) return "";
       return text
@@ -1838,6 +1981,135 @@
         .normalize("NFD")
         .replace(/[\u0300-\u036f]/g, "")
         .trim();
+    }
+
+    // Lematizador básico de plurales en español
+    function stemSpanishWord(word) {
+      if (!word || word.length <= 3) return word;
+      let w = word.toLowerCase().trim();
+      if (w.endsWith("ces")) {
+        return w.slice(0, -3) + "z"; // nueces -> nuez, luces -> luz
+      }
+      if (w.endsWith("es")) {
+        const base = w.slice(0, -2);
+        if (/[lrendzjs]$/.test(base)) return base; // papeles -> papel, limones -> limon
+        return w.slice(0, -1); // tomates -> tomate
+      }
+      if (w.endsWith("s") && !w.endsWith("ss")) {
+        return w.slice(0, -1); // manzanas -> manzana, leches -> leche
+      }
+      return w;
+    }
+
+    // Distancia Levenshtein para tolerancia a erratas
+    function levenshteinDistance(a, b) {
+      if (a === b) return 0;
+      if (!a.length) return b.length;
+      if (!b.length) return a.length;
+      const matrix = [];
+      for (let i = 0; i <= b.length; i++) matrix[i] = [i];
+      for (let j = 0; j <= a.length; j++) matrix[0][j] = j;
+      for (let i = 1; i <= b.length; i++) {
+        for (let j = 1; j <= a.length; j++) {
+          const cost = a.charAt(j - 1) === b.charAt(i - 1) ? 0 : 1;
+          matrix[i][j] = Math.min(
+            matrix[i - 1][j] + 1,      // deletion
+            matrix[i][j - 1] + 1,      // insertion
+            matrix[i - 1][j - 1] + cost // substitution
+          );
+        }
+      }
+      return matrix[b.length][a.length];
+    }
+
+    // Cálculo de similitud entre 0.0 y 1.0 (Motor Antiduplicados 2.0)
+    function calculateSimilarity(strA, strB) {
+      const normA = normalizeStr(strA);
+      const normB = normalizeStr(strB);
+      if (!normA || !normB) return 0;
+      if (normA === normB) return 1.0;
+
+      // Comparación lematizada (Plural vs Singular)
+      const stemA = normA.split(/\s+/).map(stemSpanishWord).join(" ");
+      const stemB = normB.split(/\s+/).map(stemSpanishWord).join(" ");
+      if (stemA === stemB) return 0.98;
+
+      // Subcadena directa o contenida
+      if (normA.includes(normB) || normB.includes(normA)) {
+        const ratio = Math.min(normA.length, normB.length) / Math.max(normA.length, normB.length);
+        return Math.max(0.82, 0.75 + (0.24 * ratio));
+      }
+
+      // Comparación de tokens lematizados
+      const tokensA = stemA.split(/\s+/);
+      const tokensB = stemB.split(/\s+/);
+      const common = tokensA.filter(t => tokensB.includes(t));
+      if (common.length > 0) {
+        const jaccard = common.length / Math.max(tokensA.length, tokensB.length);
+        if (jaccard >= 0.5) {
+          return 0.75 + (0.22 * jaccard);
+        }
+      }
+
+      // Distancia Levenshtein normalizada sobre stems
+      const maxLen = Math.max(stemA.length, stemB.length);
+      if (maxLen === 0) return 1.0;
+      const dist = levenshteinDistance(stemA, stemB);
+      const levSim = (maxLen - dist) / maxLen;
+      return Math.max(0, levSim);
+    }
+
+    // Helper de cálculo y formateo de caducidad
+    function getExpiryInfo(expiryDate) {
+      if (!expiryDate) return null;
+      const today = new Date();
+      today.setHours(0, 0, 0, 0);
+      const parts = expiryDate.split("-");
+      if (parts.length !== 3) return null;
+      const exp = new Date(parseInt(parts[0], 10), parseInt(parts[1], 10) - 1, parseInt(parts[2], 10));
+      exp.setHours(0, 0, 0, 0);
+      
+      const diffTime = exp.getTime() - today.getTime();
+      const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+
+      if (diffDays < 0) {
+        return {
+          status: "expired",
+          label: `⚠️ Caducó hace ${Math.abs(diffDays)}d`,
+          days: diffDays,
+          badgeClass: "expired"
+        };
+      } else if (diffDays === 0) {
+        return {
+          status: "today",
+          label: `⚠️ ¡Caduca hoy!`,
+          days: 0,
+          badgeClass: "soon"
+        };
+      } else if (diffDays <= 3) {
+        return {
+          status: "soon",
+          label: `⏱️ Caduca en ${diffDays}d`,
+          days: diffDays,
+          badgeClass: "soon"
+        };
+      } else {
+        return {
+          status: "good",
+          label: `🗓️ ${expiryDate}`,
+          days: diffDays,
+          badgeClass: "good"
+        };
+      }
+    }
+
+    // Feedback háptico nativo para móviles
+    function triggerHaptic(duration = 15) {
+      if ("vibrate" in navigator) {
+        try {
+          navigator.vibrate(duration);
+        } catch (e) {}
+      }
     }
 
     // --- 2. STORE: GESTOR DE ESTADO REACTIVO ---
@@ -1853,7 +2125,14 @@
         try {
           const raw = localStorage.getItem(this.STORAGE_KEY);
           if (raw) {
-            return JSON.parse(raw);
+            const parsed = JSON.parse(raw);
+            if (!parsed.locations || !parsed.locations.length) {
+              parsed.locations = [...INITIAL_SEED.locations];
+            }
+            if (!parsed.categories || !parsed.categories.length) {
+              parsed.categories = [...INITIAL_SEED.categories];
+            }
+            return parsed;
           }
         } catch (e) {
           console.error("Error al cargar localStorage, restaurando semilla:", e);
@@ -1877,6 +2156,27 @@
       notify() {
         for (const listener of this.listeners) {
           listener(this.state);
+        }
+      }
+
+      // Gestión de Ubicaciones y Categorías personalizables
+      addCustomLocation(name) {
+        const clean = name.trim();
+        if (!clean) return;
+        if (!this.state.locations.includes(clean)) {
+          this.state.locations.push(clean);
+          this.saveState();
+          showToast(`📍 Ubicación "${clean}" añadida.`);
+        }
+      }
+
+      addCustomCategory(name) {
+        const clean = name.trim();
+        if (!clean) return;
+        if (!this.state.categories.includes(clean)) {
+          this.state.categories.push(clean);
+          this.saveState();
+          showToast(`🏷️ Categoría "${clean}" añadida.`);
         }
       }
 
@@ -1905,6 +2205,7 @@
       adjustQuantity(id, delta) {
         const item = this.state.inventory.find(i => i.id === id);
         if (item) {
+          triggerHaptic(12);
           item.quantity = Math.max(0, (Number(item.quantity) || 0) + delta);
           this.recalcItemStatus(item);
           item.updatedAt = new Date().toISOString();
@@ -1929,20 +2230,33 @@
         }
       }
 
-      // Buscar duplicado en inventario (Sistema antiduplicados)
+      // Buscar duplicado con IA heurística / Fuzzy Matching 2.0
       findInventoryMatch(name) {
         const norm = normalizeStr(name);
         if (!norm || norm.length < 2) return null;
-        
-        // Coincidencia exacta
-        let match = this.state.inventory.find(i => i.normalizedName === norm);
-        if (match) return { item: match, exact: true };
 
-        // Coincidencia parcial
-        match = this.state.inventory.find(i => 
-          i.normalizedName.includes(norm) || norm.includes(i.normalizedName)
-        );
-        if (match) return { item: match, exact: false };
+        let bestItem = null;
+        let highestScore = 0;
+
+        for (const item of this.state.inventory) {
+          const score = calculateSimilarity(name, item.name);
+          if (score > highestScore) {
+            highestScore = score;
+            bestItem = item;
+          }
+        }
+
+        // Umbral mínimo de similitud para alertar: 70%
+        if (bestItem && highestScore >= 0.70) {
+          const percent = Math.round(highestScore * 100);
+          return {
+            item: bestItem,
+            similarity: highestScore,
+            percent: percent,
+            exact: highestScore >= 0.98,
+            isPlural: highestScore >= 0.95 && highestScore < 0.98
+          };
+        }
 
         return null;
       }
@@ -1970,6 +2284,7 @@
         if (!item) return;
 
         item.completed = !item.completed;
+        triggerHaptic([15, 30, 20]);
 
         // Si se marca como COMPRADO -> INTERCONEXIÓN AUTOMÁTICA CON EL INVENTARIO
         if (item.completed) {
@@ -1995,7 +2310,7 @@
             `🎉 ¡Comprado! +${addedQty} ${invItem.unit} a "${invItem.name}" en ${invItem.location} (Total: ${invItem.quantity}).`
           );
         } else {
-          // El producto NO existía en inventario: se crea automáticamente en el inventario
+          // El producto NO existía en inventario: se crea automáticamente
           const newInvItem = {
             id: "inv-" + Date.now(),
             name: shoppingItem.name,
@@ -2006,6 +2321,7 @@
             status: "Disponible",
             minStock: 1,
             location: shoppingItem.targetLocation || "Despensa",
+            expiryDate: null,
             updatedAt: new Date().toISOString()
           };
           this.state.inventory.unshift(newInvItem);
@@ -2039,7 +2355,6 @@
 
         let addedCount = 0;
         for (const item of lowStockItems) {
-          // Comprobar si ya está en la lista de la compra pendiente
           const alreadyInList = this.state.shopping.some(s => 
             !s.completed && s.normalizedName === item.normalizedName
           );
@@ -2090,6 +2405,7 @@
         const task = this.state.tasks.find(t => t.id === id);
         if (task) {
           task.completed = !task.completed;
+          triggerHaptic([15, 30, 20]);
           this.saveState();
         }
       }
@@ -2136,7 +2452,7 @@
       }
     }
 
-    // --- 4. TOAST NOTIFICATIONS ---
+    // --- 4. TOAST NOTIFICATIONS & SISTEMA UNDO ---
     function showToast(message, duration = 3800) {
       const container = document.getElementById("toastContainer");
       const toast = document.createElement("div");
@@ -2147,6 +2463,62 @@
         </svg>
         <span>${message}</span>
       `;
+      container.appendChild(toast);
+
+      setTimeout(() => {
+        toast.classList.add("hide");
+        setTimeout(() => toast.remove(), 250);
+      }, duration);
+    }
+
+    // Sistema de Undo (Deshacer) interactivo para eliminaciones
+    let lastDeletedRecord = null;
+
+    function registerDeletedForUndo(type, item) {
+      lastDeletedRecord = { type, item };
+      showToastWithUndo(
+        `"${item.name || item.title}" eliminado.`,
+        () => {
+          if (!lastDeletedRecord) return;
+          if (lastDeletedRecord.type === "inventory") {
+            store.state.inventory.unshift(lastDeletedRecord.item);
+            store.saveState();
+            showToast(`✓ "${lastDeletedRecord.item.name}" restaurado.`);
+          } else if (lastDeletedRecord.type === "shopping") {
+            store.state.shopping.unshift(lastDeletedRecord.item);
+            store.saveState();
+            showToast(`✓ "${lastDeletedRecord.item.name}" restaurado.`);
+          } else if (lastDeletedRecord.type === "task") {
+            store.state.tasks.unshift(lastDeletedRecord.item);
+            store.saveState();
+            showToast(`✓ Tarea restaurada.`);
+          }
+          triggerHaptic([20, 50, 20]);
+          lastDeletedRecord = null;
+        }
+      );
+    }
+
+    function showToastWithUndo(message, onUndo, duration = 5000) {
+      const container = document.getElementById("toastContainer");
+      const toast = document.createElement("div");
+      toast.className = "toast";
+      toast.innerHTML = `
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="color:var(--warning); flex-shrink:0;">
+          <polyline points="3 6 5 6 21 6"/>
+          <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/>
+        </svg>
+        <span style="flex:1;">${message}</span>
+        <button type="button" class="toast-undo-btn">Deshacer</button>
+      `;
+
+      const undoBtn = toast.querySelector(".toast-undo-btn");
+      undoBtn.addEventListener("click", () => {
+        onUndo();
+        toast.classList.add("hide");
+        setTimeout(() => toast.remove(), 250);
+      });
+
       container.appendChild(toast);
 
       setTimeout(() => {
@@ -2172,7 +2544,6 @@
     function switchTab(tab) {
       currentTab = tab;
 
-      // Actualizar botones de navegación desktop y mobile
       document.querySelectorAll("[data-tab]").forEach(btn => {
         if (btn.getAttribute("data-tab") === tab) {
           btn.classList.add("active");
@@ -2181,7 +2552,6 @@
         }
       });
 
-      // Mostrar la vista seleccionada
       document.querySelectorAll(".view-section").forEach(sec => {
         sec.classList.remove("active");
       });
@@ -2190,11 +2560,74 @@
       if (tab === "shopping") document.getElementById("viewShopping").classList.add("active");
       if (tab === "agenda") document.getElementById("viewAgenda").classList.add("active");
 
-      // Scroll top suave
       window.scrollTo({ top: 0, behavior: "smooth" });
     }
 
-    // --- 6. RENDERIZADO: INVENTARIO DEL HOGAR ---
+    // --- 6. POBLAR SELECTORES DINÁMICOS (UBICACIONES Y CATEGORÍAS) ---
+    function populateDropdowns() {
+      const locSelects = [
+        document.getElementById("filterLocationSelect"),
+        document.getElementById("invFormLocation")
+      ];
+      const catSelects = [
+        document.getElementById("filterCategorySelect"),
+        document.getElementById("invFormCategory")
+      ];
+
+      // Ubicaciones
+      locSelects.forEach(sel => {
+        if (!sel) return;
+        const currentVal = sel.value;
+        const isFilter = sel.id.startsWith("filter");
+        sel.innerHTML = isFilter ? '<option value="">Todas las ubicaciones</option>' : '';
+        
+        store.state.locations.forEach(loc => {
+          const opt = document.createElement("option");
+          opt.value = loc;
+          opt.textContent = loc;
+          sel.appendChild(opt);
+        });
+
+        if (!isFilter) {
+          const optNew = document.createElement("option");
+          optNew.value = "__new_loc__";
+          optNew.textContent = "➕ Añadir nueva ubicación...";
+          sel.appendChild(optNew);
+        }
+
+        if (currentVal && store.state.locations.includes(currentVal)) {
+          sel.value = currentVal;
+        }
+      });
+
+      // Categorías
+      catSelects.forEach(sel => {
+        if (!sel) return;
+        const currentVal = sel.value;
+        const isFilter = sel.id.startsWith("filter");
+        sel.innerHTML = isFilter ? '<option value="">Todas las categorías</option>' : '';
+
+        store.state.categories.forEach(cat => {
+          const opt = document.createElement("option");
+          opt.value = cat;
+          opt.textContent = cat;
+          sel.appendChild(opt);
+        });
+
+        if (!isFilter) {
+          const optNew = document.createElement("option");
+          optNew.value = "__new_cat__";
+          optNew.textContent = "➕ Añadir nueva categoría...";
+          sel.appendChild(optNew);
+        }
+
+        if (currentVal && store.state.categories.includes(currentVal)) {
+          sel.value = currentVal;
+        }
+      });
+    }
+
+    // --- 7. RENDERIZADO: INVENTARIO DEL HOGAR CON CONTROL DE CADUCIDADES ---
     let inventoryFilterStatus = "all";
     let inventoryFilterLocation = "";
     let inventoryFilterCategory = "";
@@ -2204,29 +2637,45 @@
       const container = document.getElementById("inventoryContainer");
       const items = store.state.inventory;
 
-      // Calcular estadísticas
+      // Calcular estadísticas de stock y caducidad
       let disponibles = 0;
       let agotandose = 0;
       let agotados = 0;
+      let caducandoOcaducados = 0;
 
       items.forEach(i => {
         if (i.status === "Disponible") disponibles++;
         else if (i.status === "Agotándose") agotandose++;
         else if (i.status === "Agotado") agotados++;
+
+        const exp = getExpiryInfo(i.expiryDate);
+        if (exp && (exp.status === "expired" || exp.status === "soon" || exp.status === "today")) {
+          caducandoOcaducados++;
+        }
       });
 
       document.getElementById("statDisponible").textContent = disponibles;
       document.getElementById("statAgotandose").textContent = agotandose;
       document.getElementById("statAgotado").textContent = agotados;
+      const statCadEl = document.getElementById("statCaducidad");
+      if (statCadEl) statCadEl.textContent = caducandoOcaducados;
 
       // Actualizar Badges
-      const alertCount = agotandose + agotados;
+      const alertCount = agotandose + agotados + (caducandoOcaducados > 0 ? 1 : 0);
       updateBadges("inventory", alertCount);
 
       // Filtrar items
       const filtered = items.filter(item => {
-        // Filtro estado
-        if (inventoryFilterStatus !== "all" && item.status !== inventoryFilterStatus) return false;
+        // Filtro especial por caducidad o estado clásico
+        if (inventoryFilterStatus === "caducidad") {
+          const exp = getExpiryInfo(item.expiryDate);
+          if (!exp || (exp.status !== "expired" && exp.status !== "soon" && exp.status !== "today")) {
+            return false;
+          }
+        } else if (inventoryFilterStatus !== "all" && item.status !== inventoryFilterStatus) {
+          return false;
+        }
+
         // Filtro ubicación
         if (inventoryFilterLocation && item.location !== inventoryFilterLocation) return false;
         // Filtro categoría
@@ -2259,18 +2708,18 @@
 
       container.innerHTML = filtered.map(item => {
         const statusClass = item.status.toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "");
+        const exp = getExpiryInfo(item.expiryDate);
+        const expBadge = exp ? `<span class="expiry-tag ${exp.badgeClass}">${exp.label}</span>` : '';
+
         return `
           <div class="inventory-item-card" data-id="${item.id}">
             <div class="item-header">
               <div class="item-title-group">
                 <h3>${escapeHtml(item.name)}</h3>
                 <div class="item-tags">
-                  <span class="tag">
-                    📍 ${escapeHtml(item.location)}
-                  </span>
-                  <span class="tag">
-                    🏷️ ${escapeHtml(item.category)}
-                  </span>
+                  <span class="tag">📍 ${escapeHtml(item.location)}</span>
+                  <span class="tag">🏷️ ${escapeHtml(item.category)}</span>
+                  ${expBadge}
                 </div>
               </div>
               <span class="status-badge ${statusClass}">
@@ -2279,7 +2728,7 @@
             </div>
 
             <div class="item-body">
-              <!-- Stepper rápido (+ / -) -->
+              <!-- Stepper rápido (+ / -) con feedback háptico -->
               <div class="quantity-stepper">
                 <button class="stepper-btn" onclick="store.adjustQuantity('${item.id}', -1)" title="Restar 1">-</button>
                 <div class="quantity-val">${item.quantity} <span style="font-size:0.75rem; font-weight:normal; color:var(--text-muted);">${escapeHtml(item.unit)}</span></div>
@@ -2287,18 +2736,9 @@
               </div>
 
               <div class="item-actions">
-                <!-- Botón rápido: Añadir a lista de la compra si escasea -->
-                <button class="btn-icon-sm" onclick="quickAddToShoppingFromInventory('${item.id}')" title="Añadir a la lista de compra">
-                  🛒
-                </button>
-                <!-- Editar -->
-                <button class="btn-icon-sm" onclick="editInventoryItem('${item.id}')" title="Editar">
-                  ✏️
-                </button>
-                <!-- Eliminar -->
-                <button class="btn-icon-sm" onclick="confirmDeleteInventory('${item.id}')" title="Eliminar">
-                  🗑️
-                </button>
+                <button class="btn-icon-sm" onclick="quickAddToShoppingFromInventory('${item.id}')" title="Añadir a la lista de compra">🛒</button>
+                <button class="btn-icon-sm" onclick="editInventoryItem('${item.id}')" title="Editar">✏️</button>
+                <button class="btn-icon-sm" onclick="confirmDeleteInventory('${item.id}')" title="Eliminar">🗑️</button>
               </div>
             </div>
           </div>
@@ -2306,7 +2746,7 @@
       }).join("");
     }
 
-    // --- 7. RENDERIZADO: LISTA DE LA COMPRA (SISTEMA ANTIDUPLICADOS) ---
+    // --- 8. RENDERIZADO: LISTA DE LA COMPRA ---
     function renderShopping() {
       const container = document.getElementById("shoppingContainer");
       const items = store.state.shopping;
@@ -2329,7 +2769,6 @@
       }
 
       container.innerHTML = items.map(item => {
-        // Comprobar si el producto está enlazado a inventario
         const invMatch = store.findInventoryMatch(item.name);
         const invInfo = invMatch ? `📍 Destino: ${invMatch.item.location}` : `📍 Destino: ${item.targetLocation || 'Despensa'}`;
 
@@ -2350,7 +2789,7 @@
               </div>
             </div>
 
-            <button class="btn-icon-sm" onclick="store.deleteShoppingItem('${item.id}')" title="Eliminar de la lista">
+            <button class="btn-icon-sm" onclick="confirmDeleteShopping('${item.id}')" title="Eliminar de la lista">
               ✕
             </button>
           </div>
@@ -2358,7 +2797,7 @@
       }).join("");
     }
 
-    // --- 8. LÓGICA DEL SISTEMA ANTIDUPLICADOS EN TIEMPO REAL ---
+    // --- 9. MOTOR ANTIDUPLICADOS 2.0 (FUZZY MATCHING EN TIEMPO REAL) ---
     let pendingDuplicateItem = null;
 
     function initAntiduplicateSystem() {
@@ -2369,7 +2808,6 @@
       const goToItemBtn = document.getElementById("antidupGoToItemBtn");
       const form = document.getElementById("quickShoppingForm");
 
-      // Detección en tiempo real mientras el usuario teclea
       input.addEventListener("input", (e) => {
         checkDuplicate(e.target.value);
       });
@@ -2384,16 +2822,28 @@
         const match = store.findInventoryMatch(query);
         if (match) {
           pendingDuplicateItem = match.item;
-          showAlert(match.item);
+          showAlert(match);
         } else {
           hideAlert();
         }
       }
 
-      function showAlert(item) {
+      function showAlert(match) {
+        const item = match.item;
+        const percent = match.percent;
+        const isPluralOrTypo = !match.exact;
+        
+        let matchHeadline = `¡Atención! Coincidencia del <strong>${percent}%</strong> con <strong>"${escapeHtml(item.name)}"</strong>.`;
+        if (match.exact) {
+          matchHeadline = `¡Atención! Producto ya registrado exactamente en el inventario.`;
+        } else if (match.isPlural) {
+          matchHeadline = `¡Atención! Coincidencia de singular/plural con <strong>"${escapeHtml(item.name)}"</strong>.`;
+        }
+
         alertText.innerHTML = `
-          ¡Atención! Ya tienes <strong>${item.quantity} ${item.unit}</strong> de este producto en <strong>"${escapeHtml(item.location)}"</strong>. 
-          <br>Estado actual en inventario: <span class="status-badge ${item.status.toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "")}">${item.status}</span>
+          ${matchHeadline}
+          <br>Ya tienes <strong>${item.quantity} ${item.unit}</strong> en <strong>"${escapeHtml(item.location)}"</strong>. 
+          <br>Estado actual: <span class="status-badge ${item.status.toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "")}">${item.status}</span>
         `;
         alertBox.classList.add("visible");
       }
@@ -2403,12 +2853,10 @@
         alertBox.classList.remove("visible");
       }
 
-      // Añadir de todos modos
       addAnywayBtn.addEventListener("click", () => {
         submitShopping(true);
       });
 
-      // Ver en inventario
       goToItemBtn.addEventListener("click", () => {
         if (pendingDuplicateItem) {
           switchTab("inventory");
@@ -2418,7 +2866,6 @@
         }
       });
 
-      // Submit por formulario
       form.addEventListener("submit", () => {
         submitShopping(false);
       });
@@ -2428,14 +2875,13 @@
         const qty = Number(document.getElementById("quickShoppingQty").value) || 1;
         if (!name) return;
 
-        // Si detectamos duplicado y no es forzado, avisamos al usuario
         if (!force && pendingDuplicateItem) {
-          // El usuario ya vio el aviso, pero si pulsa enter lo añadimos avisando
           showToast(`⚠️ "${name}" añadido a la compra a pesar de existir en ${pendingDuplicateItem.location}.`);
         } else {
           showToast(`🛒 "${name}" añadido a la lista.`);
         }
 
+        triggerHaptic(15);
         store.addShoppingItem(name, qty);
         input.value = "";
         document.getElementById("quickShoppingQty").value = "1";
@@ -2443,7 +2889,7 @@
       }
     }
 
-    // --- 9. RENDERIZADO: AGENDA / TAREAS ---
+    // --- 10. RENDERIZADO: AGENDA / TAREAS ---
     let taskFilter = "all";
 
     function renderAgenda() {
@@ -2512,14 +2958,13 @@
 
             <div class="item-actions">
               <button class="btn-icon-sm" onclick="editTask('${task.id}')" title="Editar tarea">✏️</button>
-              <button class="btn-icon-sm" onclick="store.deleteTask('${task.id}')" title="Eliminar tarea">🗑️</button>
+              <button class="btn-icon-sm" onclick="confirmDeleteTask('${task.id}')" title="Eliminar tarea">🗑️</button>
             </div>
           </div>
         `;
       }).join("");
     }
 
-    // Actualizar badges en desktop y mobile
     function updateBadges(module, count) {
       if (module === "inventory") {
         document.getElementById("badgeInventoryDesk").textContent = count;
@@ -2539,9 +2984,53 @@
       }
     }
 
-    // --- 10. MODALES & EVENTOS DE FORMULARIOS ---
+    // --- 11. SUITE DE VERIFICACIÓN AUTOMATIZADA (SUPERPOWERS TDD) ---
+    function runSuperpowersTestSuite() {
+      const results = [];
+      function assert(name, condition, details = "") {
+        results.push({ name, passed: Boolean(condition), details });
+      }
+
+      // 1. Detección de plurales
+      const simPlural = calculateSimilarity("Tomates", "Tomate");
+      assert("Antiduplicados: Detección de plurales (Tomates vs Tomate)", simPlural >= 0.95, `Similitud: ${(simPlural * 100).toFixed(0)}%`);
+
+      // 2. Tolerancia a erratas con Levenshtein
+      const simTypo = calculateSimilarity("Deterjente", "Detergente");
+      assert("Antiduplicados: Tolerancia a erratas (Deterjente vs Detergente)", simTypo >= 0.85, `Similitud: ${(simTypo * 100).toFixed(0)}%`);
+
+      // 3. Subcadenas directas
+      const simSub = calculateSimilarity("Leche", "Leche entera");
+      assert("Antiduplicados: Coincidencia por subcadena (Leche vs Leche entera)", simSub >= 0.80, `Similitud: ${(simSub * 100).toFixed(0)}%`);
+
+      // 4. Distinción de no duplicados
+      const simDiff = calculateSimilarity("Arroz", "Galletas");
+      assert("Antiduplicados: No genera falsos positivos (Arroz vs Galletas)", simDiff < 0.40, `Similitud: ${(simDiff * 100).toFixed(0)}%`);
+
+      // 5. Caducidad vencida
+      const expPast = getExpiryInfo(getOffsetDateString(-2));
+      assert("Caducidades: Detección correcta de producto vencido", expPast && expPast.status === "expired", expPast ? expPast.label : "");
+
+      // 6. Caducidad próxima
+      const expSoon = getExpiryInfo(getOffsetDateString(2));
+      assert("Caducidades: Alerta preventiva de caducidad próxima", expSoon && expSoon.status === "soon", expSoon ? expSoon.label : "");
+
+      // 7. Recálculo automático de estados de stock
+      const tempItem = { id: "t1", name: "Prueba", quantity: 0, minStock: 2, status: "" };
+      store.recalcItemStatus(tempItem);
+      assert("Stock: Cantidad 0 transiciona a Agotado", tempItem.status === "Agotado");
+      tempItem.quantity = 1;
+      store.recalcItemStatus(tempItem);
+      assert("Stock: Cantidad <= minStock transiciona a Agotándose", tempItem.status === "Agotándose");
+      tempItem.quantity = 5;
+      store.recalcItemStatus(tempItem);
+      assert("Stock: Cantidad > minStock transiciona a Disponible", tempItem.status === "Disponible");
+
+      return results;
+    }
+
+    // --- 12. MODALES & EVENTOS DE FORMULARIOS ---
     function initModals() {
-      // Cerrar modales con botones de cerrar o backdrop
       document.querySelectorAll(".close-modal-btn").forEach(btn => {
         btn.addEventListener("click", closeModal);
       });
@@ -2552,16 +3041,44 @@
         });
       });
 
-      // Tecla Escape cierra modal
       window.addEventListener("keydown", (e) => {
         if (e.key === "Escape") closeModal();
       });
 
-      // FAB Principal añade según la pestaña activa
       document.getElementById("mainFabBtn").addEventListener("click", () => {
         if (currentTab === "inventory") openInventoryModal();
         else if (currentTab === "shopping") document.getElementById("quickShoppingName").focus();
         else if (currentTab === "agenda") openTaskModal();
+      });
+
+      // Manejador del select de ubicación con opción de añadir nueva
+      const invLocSelect = document.getElementById("invFormLocation");
+      invLocSelect.addEventListener("change", (e) => {
+        if (e.target.value === "__new_loc__") {
+          const name = prompt("Escribe el nombre de la nueva ubicación (ej: Arcón congelador, Bodega, Garaje):");
+          if (name && name.trim()) {
+            store.addCustomLocation(name.trim());
+            populateDropdowns();
+            invLocSelect.value = name.trim();
+          } else {
+            invLocSelect.value = store.state.locations[0] || "Nevera";
+          }
+        }
+      });
+
+      // Manejador del select de categoría con opción de añadir nueva
+      const invCatSelect = document.getElementById("invFormCategory");
+      invCatSelect.addEventListener("change", (e) => {
+        if (e.target.value === "__new_cat__") {
+          const name = prompt("Escribe el nombre de la nueva categoría (ej: Mascotas, Bebé, Papelería):");
+          if (name && name.trim()) {
+            store.addCustomCategory(name.trim());
+            populateDropdowns();
+            invCatSelect.value = name.trim();
+          } else {
+            invCatSelect.value = store.state.categories[0] || "Alimentación";
+          }
+        }
       });
 
       // Formulario Inventario
@@ -2575,7 +3092,8 @@
           quantity: Number(document.getElementById("invFormQuantity").value) || 0,
           unit: document.getElementById("invFormUnit").value.trim() || "ud",
           status: document.getElementById("invFormStatus").value,
-          minStock: Number(document.getElementById("invFormMinStock").value) || 1
+          minStock: Number(document.getElementById("invFormMinStock").value) || 1,
+          expiryDate: document.getElementById("invFormExpiry").value || null
         };
 
         if (id) {
@@ -2586,6 +3104,7 @@
           store.addInventoryItem(itemData);
           showToast(`✓ Producto "${itemData.name}" añadido al inventario.`);
         }
+        triggerHaptic(15);
         closeModal();
       });
 
@@ -2608,6 +3127,7 @@
           store.addTask(taskData);
           showToast(`✓ Nueva tarea registrada.`);
         }
+        triggerHaptic(15);
         closeModal();
       });
 
@@ -2660,6 +3180,53 @@
         document.getElementById("modalBackup").classList.add("active");
       });
 
+      document.getElementById("addNewLocationBtn").addEventListener("click", () => {
+        const name = prompt("Escribe el nombre de la nueva ubicación para tu hogar:");
+        if (name && name.trim()) {
+          store.addCustomLocation(name.trim());
+          populateDropdowns();
+          renderInventory();
+        }
+      });
+
+      document.getElementById("addNewCategoryBtn").addEventListener("click", () => {
+        const name = prompt("Escribe el nombre de la nueva categoría:");
+        if (name && name.trim()) {
+          store.addCustomCategory(name.trim());
+          populateDropdowns();
+          renderInventory();
+        }
+      });
+
+      // Ejecutar Suite de Tests TDD Superpowers
+      document.getElementById("runTestsBtn").addEventListener("click", () => {
+        const panel = document.getElementById("testSuitePanel");
+        panel.style.display = "block";
+        panel.innerHTML = "<div style='color:var(--text-muted);'>Ejecutando suite de verificación TDD...</div>";
+        
+        setTimeout(() => {
+          const testResults = runSuperpowersTestSuite();
+          const allPassed = testResults.every(r => r.passed);
+          
+          let html = `<div style='margin-bottom:8px; font-weight:700; color:${allPassed ? "#10b981" : "#ef4444"};'>
+            ${allPassed ? "✅ Todos los tests pasaron (" + testResults.length + "/" + testResults.length + ")" : "❌ Falló alguna verificación"}
+          </div>`;
+
+          testResults.forEach(r => {
+            html += `
+              <div class="test-item-row">
+                <span>${escapeHtml(r.name)}</span>
+                <span class="${r.passed ? 'test-item-pass' : 'test-item-fail'}">
+                  ${r.passed ? '✓ PASSED' : '✕ FAILED'} ${r.details ? '(' + escapeHtml(r.details) + ')' : ''}
+                </span>
+              </div>
+            `;
+          });
+          panel.innerHTML = html;
+          triggerHaptic(allPassed ? [30, 40, 30] : [80]);
+        }, 150);
+      });
+
       document.getElementById("exportDataBtn").addEventListener("click", () => {
         const json = JSON.stringify(store.state, null, 2);
         const blob = new Blob([json], { type: "application/json" });
@@ -2681,7 +3248,10 @@
             const data = JSON.parse(event.target.result);
             if (data.inventory && data.shopping && data.tasks) {
               store.state = data;
+              if (!store.state.locations) store.state.locations = [...INITIAL_SEED.locations];
+              if (!store.state.categories) store.state.categories = [...INITIAL_SEED.categories];
               store.saveState();
+              populateDropdowns();
               showToast("Datos restaurados correctamente.");
               closeModal();
             } else {
@@ -2697,6 +3267,7 @@
       document.getElementById("resetDemoDataBtn").addEventListener("click", () => {
         if (confirm("¿Estás seguro de restablecer los datos de demostración? Se sobreescribirán los datos actuales.")) {
           store.resetToSeed();
+          populateDropdowns();
           showToast("Datos iniciales restaurados.");
           closeModal();
         }
@@ -2711,6 +3282,7 @@
     window.openInventoryModal = function() {
       document.getElementById("formInventory").reset();
       document.getElementById("invFormId").value = "";
+      document.getElementById("invFormExpiry").value = "";
       document.getElementById("modalInventoryTitle").textContent = "Nuevo Producto en Inventario";
       document.getElementById("modalInventory").classList.add("active");
       setTimeout(() => document.getElementById("invFormName").focus(), 150);
@@ -2728,6 +3300,7 @@
       document.getElementById("invFormUnit").value = item.unit;
       document.getElementById("invFormStatus").value = item.status;
       document.getElementById("invFormMinStock").value = item.minStock || 1;
+      document.getElementById("invFormExpiry").value = item.expiryDate || "";
 
       document.getElementById("modalInventoryTitle").textContent = "Editar Producto";
       document.getElementById("modalInventory").classList.add("active");
@@ -2736,15 +3309,31 @@
     window.confirmDeleteInventory = function(id) {
       const item = store.state.inventory.find(i => i.id === id);
       if (!item) return;
-      if (confirm(`¿Eliminar "${item.name}" del inventario?`)) {
-        store.deleteInventoryItem(id);
-        showToast(`"${item.name}" eliminado del inventario.`);
-      }
+      triggerHaptic(20);
+      store.deleteInventoryItem(id);
+      registerDeletedForUndo("inventory", item);
+    };
+
+    window.confirmDeleteShopping = function(id) {
+      const item = store.state.shopping.find(s => s.id === id);
+      if (!item) return;
+      triggerHaptic(20);
+      store.deleteShoppingItem(id);
+      registerDeletedForUndo("shopping", item);
+    };
+
+    window.confirmDeleteTask = function(id) {
+      const task = store.state.tasks.find(t => t.id === id);
+      if (!task) return;
+      triggerHaptic(20);
+      store.deleteTask(id);
+      registerDeletedForUndo("task", task);
     };
 
     window.quickAddToShoppingFromInventory = function(id) {
       const item = store.state.inventory.find(i => i.id === id);
       if (!item) return;
+      triggerHaptic(15);
       store.addShoppingItem(item.name, 1, item.unit, item.location, item.category);
       showToast(`🛒 "${item.name}" añadido a la lista de la compra.`);
     };
@@ -2779,7 +3368,7 @@
       return div.innerHTML;
     }
 
-    // --- 11. REGISTRO DE SERVICE WORKER (PWA OFFLINE) ---
+    // --- 13. REGISTRO DE SERVICE WORKER (PWA OFFLINE) ---
     if ("serviceWorker" in navigator) {
       window.addEventListener("load", () => {
         navigator.serviceWorker.register("./service-worker.js")
@@ -2788,21 +3377,20 @@
       });
     }
 
-    // --- 12. INICIALIZACIÓN GLOBAL ---
+    // --- 14. INICIALIZACIÓN GLOBAL ---
     document.addEventListener("DOMContentLoaded", () => {
       initTheme();
+      populateDropdowns();
       initNavigation();
       initModals();
       initAntiduplicateSystem();
 
-      // Suscribir re-renderizados a cambios de estado en el Store
       store.subscribe(() => {
         renderInventory();
         renderShopping();
         renderAgenda();
       });
 
-      // Primer render
       renderInventory();
       renderShopping();
       renderAgenda();
